@@ -70,6 +70,16 @@ Uint8List uint8ListFromHex(String hex, {bool utf8EncodeOnHexFailure = false}) {
   }
 }
 
+///
+/// convert utf8 or hex string to Uint8Buffer. 0x prefix determines type.
+///
+Uint8List uint8ListFromHexOrUtf8String(String str) {
+  if (str.isEmpty) return Uint8List.fromList([]);
+  final list =
+      str.startsWith('0x') ? HEX.decode(str.substring(2)) : utf8.encode(str);
+  return Uint8List.fromList(list);
+}
+
 Uint8List csvToUint8List(String csvIntegers) => Uint8List.fromList(
     csvIntegers.split(',').map((e) => int.parse(e)).toList());
 

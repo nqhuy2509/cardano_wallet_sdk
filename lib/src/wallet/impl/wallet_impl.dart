@@ -93,7 +93,7 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
       print("tx hex: ${HEX.encode(txResult.unwrap().serialize)}");
     }
     if (logTx) {
-      print("tx: ${txResult.unwrap().toJson}");
+      print("tx: ${txResult.unwrap().toCborJson}");
     }
     final sendResult = submitTransaction(
       tx: txResult.unwrap(),

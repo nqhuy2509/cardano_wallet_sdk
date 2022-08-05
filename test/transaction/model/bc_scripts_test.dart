@@ -3,6 +3,7 @@
 
 import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
 import 'package:logging/logging.dart';
+import 'dart:convert' as convert;
 import 'package:cbor/cbor.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
@@ -87,8 +88,6 @@ void main() {
       expect(script.serialize,
           equals(parseInts('78,77,1,0,0,51,34,34,32,5,18,0,18,0,17')),
           reason: '14 bytes: 4e4d01000033222220051200120011');
-      //scriptHash bytes=[1,78,77,1,0,0,51,34,34,32,5,18,0,18,0,17]
-      //java hash  bytes=[1,77,1,0,0,51,34,34,32,5,18,0,18,0,17]
       expect(
         script.scriptHash,
         equals(parseInts(
@@ -185,6 +184,20 @@ void main() {
             BcScriptAll(scripts: [sb, sp2])
           ]).policyId,
           equals('6519f942518b8761f4b02e1403365b7d7befae1eb488b7fffcbab33f'));
+    });
+  });
+
+  group('serialize -', () {
+    final convert.JsonEncoder ppEncoder = convert.JsonEncoder.withIndent(' ');
+    test('BcPlutusScript', () async {
+      final s1 = BcPlutusScript(
+          description: 'V1',
+          type: BcScriptType.plutusV1,
+          cborHex: '4e4d01000033222220051200120011');
+      logger.info(ppEncoder.convert(s1.toJson));
+      final s2 = BcPlutusScript.fromJson(s1.toJson);
+      logger.info(ppEncoder.convert(s2.toJson));
+      expect(s2, equals(s1));
     });
   });
 }

@@ -8,11 +8,12 @@ import 'package:cbor/cbor.dart';
 abstract class BcAbstractCbor {
   Uint8List get serialize;
   String get json;
+  // Map<String, dynamic> get toJson;
 
   Uint8List toUint8List(CborValue value) =>
       Uint8List.fromList(cbor.encode(value));
 
-  String toJson(CborValue value) => const CborJsonEncoder().convert(value);
+  String toCborJson(CborValue value) => const CborJsonEncoder().convert(value);
 
   String get toHex => HEX.encode(serialize);
 

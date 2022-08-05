@@ -10,6 +10,7 @@ import '../../util/blake2bhash.dart';
 import '../../util/codec.dart';
 import 'bc_exception.dart';
 import 'bc_abstract.dart';
+import 'bc_plutus_data.dart';
 import 'bc_scripts.dart';
 
 class BcAsset {
@@ -78,7 +79,7 @@ class BcMultiAsset extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborMap());
+  String get json => toCborJson(toCborMap());
 }
 
 /// Points to an UTXO unspent change entry using a transactionId and index.
@@ -110,7 +111,7 @@ class BcTransactionInput extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
 }
 
 /// Can be a simple ADA amount using coin or a combination of ADA and Native Tokens and their amounts.
@@ -156,7 +157,7 @@ class BcValue extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
 }
 
 /// Address to send to and amount to send.
@@ -200,7 +201,7 @@ class BcTransactionOutput extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
 }
 
 /// Core of the Shelley transaction that is signed.
@@ -307,7 +308,7 @@ class BcTransactionBody extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborMap());
+  String get json => toCborJson(toCborMap());
 }
 
 /// A witness is a public key and a signature (a signed hash of the body) used for on-chain validation.
@@ -338,7 +339,7 @@ class BcVkeyWitness extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
 }
 
 enum BcWitnessSetType {
@@ -407,7 +408,7 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborMap());
+  String get json => toCborJson(toCborMap());
 }
 
 ///
@@ -420,9 +421,12 @@ class BcMetadata extends BcAbstractCbor {
     required this.value,
   });
 
-  CborValue toCborValue() => value;
+  factory BcMetadata.fromCbor({required CborValue map}) =>
+      BcMetadata(value: map);
+  factory BcMetadata.fromJson(dynamic json) =>
+      BcMetadata(value: BcPlutusData.fromJson(json).cborValue);
 
-  // List<int> get serialize => cbor.encode(value);
+  CborValue toCborValue() => value;
 
   @override
   Uint8List get serialize => toUint8List(value);
@@ -435,11 +439,39 @@ class BcMetadata extends BcAbstractCbor {
 
   @override
   String toString() {
-    return 'BcMetadata(value: ${toJson(value)})';
+    return 'BcMetadata(value: ${toCborJson(value)})';
   }
 
   @override
-  String get json => toJson(toCborValue());
+  String get json => toCborJson(toCborValue());
+
+  dynamic get toJson => BcPlutusData.cborToJson(value);
+
+  BcMetadata merge(BcMetadata metadata1) => BcMetadata(
+      value: CborMap(<CborValue, CborValue>{}
+        ..addAll(metadata1.value as CborMap)
+        ..addAll(value as CborMap)));
+}
+
+class BcMetadata2 extends BcAbstractCbor {
+  final CborMap cborMap;
+
+  BcMetadata2(this.cborMap);
+
+  CborMap get cborValue => cborMap;
+
+  Uint8List get metadataHash => Uint8List.fromList(blake2bHash256(serialize));
+
+  // BcMetadata merge(BcMetadata metadata1) =>
+  //     BcMetadata(CborMap(<CborValue, CborValue>{}
+  //       ..addAll(metadata1.cborMap)
+  //       ..addAll(cborMap)));
+
+  @override
+  String get json => toCborJson(cborValue);
+
+  @override
+  Uint8List get serialize => toUint8List(cborValue);
 }
 
 /// outer wrapper of a Cardano blockchain transaction.
@@ -512,5 +544,5 @@ class BcTransaction extends BcAbstractCbor {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
 }
