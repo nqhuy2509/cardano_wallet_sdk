@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:bip32_ed25519/bip32_ed25519.dart';
-import 'package:cardano_wallet_sdk/src/crypto/key_util.dart';
 import 'package:hex/hex.dart';
 import 'package:cbor/cbor.dart';
+import '../../crypto/key_util.dart';
 import '../../util/blake2bhash.dart';
 import '../../util/codec.dart';
 import './bc_exception.dart';
@@ -28,12 +28,19 @@ import './bc_plutus_data.dart';
 ///
 
 enum BcScriptType {
+  unknown(-1),
   native(0),
   plutusV1(1),
   plutusV2(2);
 
   final int header;
   const BcScriptType(this.header);
+
+  factory BcScriptType.fromName(String name) => BcScriptType.values
+      .firstWhere((e) => e.name == name, orElse: () => BcScriptType.unknown);
+  factory BcScriptType.fromHeader(int header) =>
+      BcScriptType.values.firstWhere((e) => e.header == header,
+          orElse: () => BcScriptType.unknown);
 }
 
 abstract class BcAbstractScript extends BcAbstractCbor {
@@ -84,10 +91,39 @@ class BcPlutusScript extends BcAbstractScript {
   }
 
   @override
-  String get json => toJson(toCborBytes());
+  String get json => toCborJson(toCborBytes());
+
+  Map<String, dynamic> get toJson => <String, dynamic>{
+        if (description != null) 'description': description,
+        'type': type.name,
+        'cborHex': cborHex,
+      };
+
+  factory BcPlutusScript.fromJson(Map<String, dynamic> json) => BcPlutusScript(
+        description: json['description'] as String?,
+        type: BcScriptType.fromName(json['type'] as String),
+        cborHex: json['cborHex'] as String,
+      );
 }
 
-enum BcNativeScriptType { sig, all, any, atLeast, after, before }
+enum BcNativeScriptType {
+  unknown(-1),
+  sig(0),
+  all(1),
+  any(2),
+  atLeast(3),
+  after(4),
+  before(5);
+
+  final int code;
+  const BcNativeScriptType(this.code);
+  factory BcNativeScriptType.fromName(String name) =>
+      BcNativeScriptType.values.firstWhere((e) => e.name == name,
+          orElse: () => BcNativeScriptType.unknown);
+  factory BcNativeScriptType.fromCode(int code) =>
+      BcNativeScriptType.values.firstWhere((e) => e.code == code,
+          orElse: () => BcNativeScriptType.unknown);
+}
 
 abstract class BcNativeScript extends BcAbstractScript {
   @override
@@ -101,7 +137,7 @@ abstract class BcNativeScript extends BcAbstractScript {
 
   static BcNativeScript fromCbor({required CborList list}) {
     final selector = list[0] as CborSmallInt;
-    final nativeType = BcNativeScriptType.values[selector.toInt()];
+    final nativeType = BcNativeScriptType.fromCode(selector.toInt());
     switch (nativeType) {
       case BcNativeScriptType.sig:
         return BcScriptPubkey.fromCbor(list: list);
@@ -115,7 +151,7 @@ abstract class BcNativeScript extends BcAbstractScript {
         return BcRequireTimeAfter.fromCbor(list: list);
       case BcNativeScriptType.before:
         return BcRequireTimeBefore.fromCbor(list: list);
-      default:
+      case BcNativeScriptType.unknown:
         throw BcCborDeserializationException(
             "unknown native script selector: $selector");
     }
@@ -134,7 +170,31 @@ abstract class BcNativeScript extends BcAbstractScript {
   }
 
   @override
-  String get json => toJson(toCborList());
+  String get json => toCborJson(toCborList());
+
+  Map<String, dynamic> get toJson;
+
+  static BcNativeScript fromJson(Map<String, dynamic> json) {
+    final selector = json['type'] as String;
+    final nativeType = BcNativeScriptType.fromName(selector);
+    switch (nativeType) {
+      case BcNativeScriptType.sig:
+        return BcScriptPubkey.fromJson(json);
+      case BcNativeScriptType.all:
+        return BcScriptAll.fromJson(json);
+      case BcNativeScriptType.any:
+        return BcScriptAny.fromJson(json);
+      case BcNativeScriptType.atLeast:
+        return BcScriptAtLeast.fromJson(json);
+      case BcNativeScriptType.after:
+        return BcRequireTimeAfter.fromJson(json);
+      case BcNativeScriptType.before:
+        return BcRequireTimeBefore.fromJson(json);
+      case BcNativeScriptType.unknown:
+        throw BcCborDeserializationException(
+            "unknown native script selector: $selector");
+    }
+  }
 }
 
 class BcScriptPubkey extends BcNativeScript {
@@ -154,9 +214,12 @@ class BcScriptPubkey extends BcNativeScript {
   factory BcScriptPubkey.fromKey({required VerifyKey verifyKey}) =>
       BcScriptPubkey(keyHash: KeyUtil.keyHash(verifyKey: verifyKey));
 
+  factory BcScriptPubkey.fromJson(Map<String, dynamic> json) =>
+      BcScriptPubkey(keyHash: (json['keyHash'] as String));
+
   @override
   CborList toCborList() => CborList([
-        CborSmallInt(nativeType.index),
+        CborSmallInt(nativeType.code),
         CborBytes(uint8BufferFromHex(keyHash, utf8EncodeOnHexFailure: true))
       ]);
 
@@ -164,6 +227,12 @@ class BcScriptPubkey extends BcNativeScript {
   String toString() {
     return 'BcScriptPubkey(nativeType: $nativeType, keyHash: $keyHash)';
   }
+
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'keyHash': keyHash,
+      };
 }
 
 class BcScriptAll extends BcNativeScript {
@@ -180,10 +249,15 @@ class BcScriptAll extends BcNativeScript {
     return BcScriptAll(scripts: scripts);
   }
 
+  factory BcScriptAll.fromJson(Map<String, dynamic> json) => BcScriptAll(
+      scripts: (json['scripts'] as List<dynamic>)
+          .map((e) => BcNativeScript.fromJson(e as Map<String, dynamic>))
+          .toList());
+
   @override
   CborList toCborList() {
     return CborList([
-      CborSmallInt(nativeType.index),
+      CborSmallInt(nativeType.code),
       CborList([for (var s in scripts) s.toCborList()]),
     ]);
   }
@@ -192,6 +266,27 @@ class BcScriptAll extends BcNativeScript {
   String toString() {
     return 'BcScriptAll(nativeType: $nativeType, scripts: $scripts)';
   }
+
+/*
+  {"name":"MultiSigPolicy",
+    "policyScript":{"type":"all","scripts":[
+      {"type":"sig","keyHash":"2e5adb21a00882b43e7b9c16d457cfab78699d27cb7833b7a8bd11b6"},
+      {"type":"sig","keyHash":"786645049d724ace01dbb397646fa4de5d936c770f02c5eb1b89456a"},
+      {"type":"sig","keyHash":"e5df1f1439c7bf1c265db00d46ea07fe2708af720fafcef560bded27"}
+      ]},
+    "policyKeys":[
+      {"type":"PaymentVerificationKeyShelley_ed25519","description":"Payment Signing Key","cborHex":"582088dfc434edf14d3e72ba518c2aad3132e51d721a183662dc9c42156caebee48c"},
+      {"type":"PaymentVerificationKeyShelley_ed25519","description":"Payment Signing Key","cborHex":"5820389f6de926f003c648f9184ad7d74cea8951ef3c6fa875da2ab4626febc6542d"},
+      {"type":"PaymentVerificationKeyShelley_ed25519","description":"Payment Signing Key","cborHex":"58201d74e9f2e6bfa76afd60a5a7851df601f607d5c7a01351ee43fa9253975dda16"}
+      ],
+    "policyId":"403687b05f2c8f8f8e7a5c860c0b489fc041bf75f8404c409d9a3b80"
+  }
+  */
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'scripts': [for (BcNativeScript s in scripts) s.toJson],
+      };
 }
 
 class BcScriptAny extends BcNativeScript {
@@ -207,10 +302,15 @@ class BcScriptAny extends BcNativeScript {
     return BcScriptAny(scripts: scripts);
   }
 
+  factory BcScriptAny.fromJson(Map<String, dynamic> json) => BcScriptAny(
+      scripts: (json['scripts'] as List<dynamic>)
+          .map((e) => BcNativeScript.fromJson(e as Map<String, dynamic>))
+          .toList());
+
   @override
   CborList toCborList() {
     return CborList([
-      CborSmallInt(nativeType.index),
+      CborSmallInt(nativeType.code),
       CborList([for (var s in scripts) s.toCborList()]),
     ]);
   }
@@ -219,6 +319,12 @@ class BcScriptAny extends BcNativeScript {
   String toString() {
     return 'BcScriptAny(nativeType: $nativeType, scripts: $scripts)';
   }
+
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'scripts': [for (BcNativeScript s in scripts) s.toJson],
+      };
 }
 
 class BcScriptAtLeast extends BcNativeScript {
@@ -237,10 +343,17 @@ class BcScriptAtLeast extends BcNativeScript {
         amount: (list[1] as CborSmallInt).toInt(), scripts: scripts);
   }
 
+  factory BcScriptAtLeast.fromJson(Map<String, dynamic> json) =>
+      BcScriptAtLeast(
+          amount: json['amount'] as int,
+          scripts: (json['scripts'] as List<dynamic>)
+              .map((e) => BcNativeScript.fromJson(e as Map<String, dynamic>))
+              .toList());
+
   @override
   CborList toCborList() {
     return CborList([
-      CborSmallInt(nativeType.index),
+      CborSmallInt(nativeType.code),
       CborSmallInt(amount),
       CborList([for (var s in scripts) s.toCborList()]),
     ]);
@@ -250,6 +363,13 @@ class BcScriptAtLeast extends BcNativeScript {
   String toString() {
     return 'BcScriptAtLeast(nativeType: $nativeType, amount: $amount, scripts: $scripts)';
   }
+
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'amount': amount,
+        'scripts': [for (BcNativeScript s in scripts) s.toJson],
+      };
 }
 
 class BcRequireTimeAfter extends BcNativeScript {
@@ -264,10 +384,13 @@ class BcRequireTimeAfter extends BcNativeScript {
     return BcRequireTimeAfter(slot: (list[1] as CborSmallInt).toInt());
   }
 
+  factory BcRequireTimeAfter.fromJson(Map<String, dynamic> json) =>
+      BcRequireTimeAfter(slot: json['slot'] as int);
+
   @override
   CborList toCborList() {
     return CborList([
-      CborSmallInt(nativeType.index),
+      CborSmallInt(nativeType.code),
       CborSmallInt(slot),
     ]);
   }
@@ -276,6 +399,12 @@ class BcRequireTimeAfter extends BcNativeScript {
   String toString() {
     return 'BcRequireTimeAfter(nativeType: $nativeType, slot: $slot)';
   }
+
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'slot': slot,
+      };
 }
 
 class BcRequireTimeBefore extends BcNativeScript {
@@ -290,10 +419,13 @@ class BcRequireTimeBefore extends BcNativeScript {
     return BcRequireTimeBefore(slot: (list[1] as CborSmallInt).toInt());
   }
 
+  factory BcRequireTimeBefore.fromJson(Map<String, dynamic> json) =>
+      BcRequireTimeBefore(slot: json['slot'] as int);
+
   @override
   CborList toCborList() {
     return CborList([
-      CborSmallInt(nativeType.index),
+      CborSmallInt(nativeType.code),
       CborSmallInt(slot),
     ]);
   }
@@ -302,6 +434,12 @@ class BcRequireTimeBefore extends BcNativeScript {
   String toString() {
     return 'BcRequireTimeBefore(nativeType: $nativeType, slot: $slot)';
   }
+
+  @override
+  Map<String, dynamic> get toJson => {
+        'type': nativeType.name,
+        'slot': slot,
+      };
 }
 
 enum BcRedeemerTag {
@@ -364,7 +502,7 @@ class BcRedeemer extends BcAbstractCbor {
       ]);
 
   @override
-  String get json => toJson(cborValue);
+  String get json => toCborJson(cborValue);
 
   @override
   Uint8List get serialize => toUint8List(cborValue);
