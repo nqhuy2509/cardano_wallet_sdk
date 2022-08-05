@@ -5,7 +5,6 @@ import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
 import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:logging/logging.dart';
 import 'package:cbor/cbor.dart';
-import 'dart:convert' as convertor;
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
 

@@ -37,6 +37,7 @@ export './src/transaction/model/bc_tx_body_ext.dart';
 export './src/transaction/model/bc_tx.dart';
 export './src/transaction/coin_selection.dart';
 export './src/transaction/min_fee_function.dart';
+export './src/transaction/policy.dart';
 export './src/transaction/transaction.dart';
 export './src/transaction/tx_builder.dart';
 export './src/util/ada_formatter.dart';

@@ -3,6 +3,8 @@
 
 import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:cardano_wallet_sdk/src/crypto/key_util.dart';
+import 'package:collection/collection.dart';
+import 'package:hex/hex.dart';
 
 import './model/bc_scripts.dart';
 
@@ -60,4 +62,34 @@ class Policy {
     return Policy(
         name: name, policyScript: scriptAtLeast, policyKeys: p.policyKeys);
   }
+
+  Map<String, dynamic> get toJson => <String, dynamic>{
+        if (name != null) 'name': name,
+        'policyScript': policyScript.toJson,
+        'policyKeys': [
+          for (SigningKey key in policyKeys) HEX.encode(key),
+        ],
+      };
+
+  factory Policy.fromJson(Map<String, dynamic> json) => Policy(
+        name: json['name'] as String?,
+        policyScript: BcNativeScript.fromJson(
+            json['policyScript'] as Map<String, dynamic>),
+        policyKeys: (json['policyKeys'] as List<dynamic>)
+            .map((e) => SigningKey.fromValidBytes(
+                Uint8List.fromList(HEX.decode(e as String))))
+            .toList(),
+      );
+
+  @override
+  int get hashCode =>
+      Object.hash(name, policyScript, Object.hashAll(policyKeys));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Policy &&
+          runtimeType == other.runtimeType &&
+          policyScript == other.policyScript &&
+          const ListEquality().equals(policyKeys, other.policyKeys));
 }

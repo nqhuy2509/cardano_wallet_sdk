@@ -1,0 +1,38 @@
+{
+    "name": "MultiSigPolicy",
+    "policyScript": {
+        "type": "all",
+        "scripts": [
+            {
+                "type": "sig",
+                "keyHash": "2e5adb21a00882b43e7b9c16d457cfab78699d27cb7833b7a8bd11b6"
+            },
+            {
+                "type": "sig",
+                "keyHash": "786645049d724ace01dbb397646fa4de5d936c770f02c5eb1b89456a"
+            },
+            {
+                "type": "sig",
+                "keyHash": "e5df1f1439c7bf1c265db00d46ea07fe2708af720fafcef560bded27"
+            }
+        ]
+    },
+    "policyKeys": [
+        {
+            "type": "PaymentVerificationKeyShelley_ed25519",
+            "description": "Payment Signing Key",
+            "cborHex": "582088dfc434edf14d3e72ba518c2aad3132e51d721a183662dc9c42156caebee48c"
+        },
+        {
+            "type": "PaymentVerificationKeyShelley_ed25519",
+            "description": "Payment Signing Key",
+            "cborHex": "5820389f6de926f003c648f9184ad7d74cea8951ef3c6fa875da2ab4626febc6542d"
+        },
+        {
+            "type": "PaymentVerificationKeyShelley_ed25519",
+            "description": "Payment Signing Key",
+            "cborHex": "58201d74e9f2e6bfa76afd60a5a7851df601f607d5c7a01351ee43fa9253975dda16"
+        }
+    ],
+    "policyId": "403687b05f2c8f8f8e7a5c860c0b489fc041bf75f8404c409d9a3b80"
+}
