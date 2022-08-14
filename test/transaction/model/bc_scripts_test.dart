@@ -10,57 +10,11 @@ import 'package:hex/hex.dart';
 import 'dart:typed_data';
 
 void main() {
-  //Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  Logger.root.level = Level.WARNING; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   final logger = Logger('BcScriptsTest');
-  group('Redeemer -', () {
-    final fortyTwo = CborBigInt(BigInt.from(42));
-    final hello = CborBytes('hello'.codeUnits);
-    final list1 = CborList([fortyTwo, hello]);
-    final map1 = CborMap({fortyTwo: hello});
-
-    test('cbor', () {
-      final redeemer1 = BcRedeemer(
-        tag: BcRedeemerTag.spend,
-        index: BigInt.from(99),
-        data: BcPlutusData.fromCbor(map1),
-        exUnits: BcExUnits(BigInt.from(1024), BigInt.from(6)),
-      );
-      final cbor = redeemer1.cborValue;
-      logger.info(cbor);
-      final hex1 = redeemer1.toHex;
-      logger.info(hex1);
-    });
-    test('cbor2', () {
-      final redeemer1 = BcRedeemer(
-        tag: BcRedeemerTag.spend,
-        index: BigInt.from(0),
-        data: BcBigIntPlutusData(BigInt.from(2021)),
-        exUnits: BcExUnits(BigInt.from(1700), BigInt.from(476468)),
-      );
-      final cbor = redeemer1.cborValue;
-      logger.info(cbor);
-      final hex1 = redeemer1.toHex;
-      logger.info(hex1);
-      expect(hex1, equals('8400001907e5821906a41a00074534'));
-    });
-    /*
-    Expected: '84000019    07e582  1906a41a00074534'
-      Actual: '8400c240c24207e582c24206a4c243074534'
-
-    PlutusData plutusData = new BigIntPlutusData(new BigInteger("2021"));
-        Redeemer redeemer = Redeemer.builder()
-                .tag(RedeemerTag.Spend)
-                .data(plutusData)
-                .index(BigInteger.valueOf(0))
-                .exUnits(ExUnits.builder()
-                        .mem(BigInteger.valueOf(1700))
-                        .steps(BigInteger.valueOf(476468)).build())
-                .build();
-                */
-  });
 
   group('Script -', () {
     BcScriptAtLeast multisigScript1() => BcScriptAtLeast(amount: 2, scripts: [
@@ -81,7 +35,8 @@ void main() {
     test('plutusScriptHash', () {
       final scriptHash =
           '103,243,49,70,97,122,94,97,147,96,129,219,59,33,23,203,245,155,210,18,55,72,245,138,201,103,134,86';
-      final script = BcPlutusScript(cborHex: '4e4d01000033222220051200120011');
+      final script =
+          BcPlutusScriptV1(cborHex: '4e4d01000033222220051200120011');
       final ser1 = script.serialize;
       logger.info("plutus hex: ${script.toHex}");
       logger.info("plutus ser1: ${ser1.join(',')}");
@@ -189,11 +144,17 @@ void main() {
 
   group('serialize -', () {
     final convert.JsonEncoder ppEncoder = convert.JsonEncoder.withIndent(' ');
-    test('BcPlutusScript', () async {
-      final s1 = BcPlutusScript(
-          description: 'V1',
-          type: BcScriptType.plutusV1,
-          cborHex: '4e4d01000033222220051200120011');
+    test('BcPlutusScriptV1', () async {
+      final s1 = BcPlutusScriptV1(
+          description: 'V1', cborHex: '4e4d01000033222220051200120011');
+      logger.info(ppEncoder.convert(s1.toJson));
+      final s2 = BcPlutusScript.fromJson(s1.toJson);
+      logger.info(ppEncoder.convert(s2.toJson));
+      expect(s2, equals(s1));
+    });
+    test('BcPlutusScriptV2', () async {
+      final s1 = BcPlutusScriptV2(
+          description: 'V2', cborHex: '4e4d01000033222220051200120011');
       logger.info(ppEncoder.convert(s1.toJson));
       final s2 = BcPlutusScript.fromJson(s1.toJson);
       logger.info(ppEncoder.convert(s2.toJson));

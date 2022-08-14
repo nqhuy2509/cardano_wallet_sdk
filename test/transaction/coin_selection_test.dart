@@ -2,12 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
+import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import '../wallet/mock_wallet_2.dart';
-import 'package:collection/collection.dart';
 
 const ada = 1000000;
 void main() {
+  Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+  final logger = Logger('CoinSelectionTest');
   final mockAdapter = BlockfrostBlockchainAdapter(
       blockfrost: buildMockBlockfrostWallet2(),
       network: Networks.testnet,
