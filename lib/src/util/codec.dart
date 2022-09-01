@@ -56,17 +56,19 @@ Uint8Buffer uint8BufferFromHex(String hex,
 
 ///
 /// convert hex string to Uint8Buffer. Strips off 0x prefix if present.
+/// If header is supplied, it's inserted at the head of the list.
 ///
-Uint8List uint8ListFromHex(String hex, {bool utf8EncodeOnHexFailure = false}) {
+Uint8List uint8ListFromHex(String hex,
+    {int? header, bool utf8EncodeOnHexFailure = false}) {
   if (hex.isEmpty) return Uint8List.fromList([]);
   try {
     final list =
         hex.startsWith('0x') ? HEX.decode(hex.substring(2)) : HEX.decode(hex);
-    return Uint8List.fromList(list);
+    return Uint8List.fromList([if (header != null) header, ...list]);
   } catch (e) {
     if (!utf8EncodeOnHexFailure) rethrow;
     final list = utf8.encode(hex);
-    return Uint8List.fromList(list);
+    return Uint8List.fromList([if (header != null) header, ...list]);
   }
 }
 
