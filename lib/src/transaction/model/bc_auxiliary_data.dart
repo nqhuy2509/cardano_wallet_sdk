@@ -31,6 +31,12 @@ class BcAuxiliaryData extends BcAbstractCbor {
 
   Uint8List get hash => Uint8List.fromList(blake2bHash256(serialize));
 
+  bool get isEmpty =>
+      (metadata == null || metadata!.isEmpty) &&
+      nativeScripts.isEmpty &&
+      plutusV1Scripts.isEmpty &&
+      plutusV2Scripts.isEmpty;
+
   CborMap get toCborMap =>
       //TODO metadata may not be a map
 
@@ -49,10 +55,10 @@ class BcAuxiliaryData extends BcAbstractCbor {
                       nativeScripts.map((s) => s.toCborList()).toList()),
                 if (plutusV1Scripts.isNotEmpty)
                   _v1Key: CborList(
-                      plutusV1Scripts.map((s) => s.toCborBytes()).toList()),
+                      plutusV1Scripts.map((s) => s.cborBytes).toList()),
                 if (plutusV2Scripts.isNotEmpty)
                   _v2Key: CborList(
-                      plutusV2Scripts.map((s) => s.toCborBytes()).toList()),
+                      plutusV2Scripts.map((s) => s.cborBytes).toList()),
               },
               tags: [_alonzoTag],
             );
