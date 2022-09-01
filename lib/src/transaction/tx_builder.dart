@@ -1,6 +1,8 @@
 // Copyright 2021 Richard Easterling
 // SPDX-License-Identifier: Apache-2.0
 
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:oxidized/oxidized.dart';
@@ -16,6 +18,7 @@ import './model/bc_tx.dart';
 import './model/bc_tx_body_ext.dart';
 import './model/bc_tx_ext.dart';
 import 'coin_selection.dart';
+import 'model/bc_scripts.dart';
 
 ///
 /// This builder manages the details of assembling a balanced transaction, including
@@ -48,6 +51,10 @@ class TxBuilder {
   List<BcMultiAsset> _mint = [];
   BcTransactionWitnessSet? _witnessSet;
   BcMetadata? _metadata;
+  final List<BcNativeScript> _nativeScripts = [];
+  final List<BcPlutusScriptV1> _plutusV1Scripts = [];
+  final List<BcPlutusScriptV2> _plutusV2Scripts = [];
+  // BcAuxiliaryData? _auxiliaryData;
   MinFeeFunction _minFeeFunction = simpleMinFee;
   LinearFee _linearFee = defaultLinearFee;
   int _currentSlot = 0;
@@ -62,16 +69,31 @@ class TxBuilder {
   BcTransactionBody _buildBody() => BcTransactionBody(
         inputs: _inputs,
         outputs: _outputs,
-        fee: _fee,
+        fee: _minFee != coinZero ? _minFee : _fee,
         ttl: _ttl,
         metadataHash: _metadataHash,
         validityStartInterval: _validityStartInterval ?? 0,
         mint: _mint,
       );
 
+  // BcAuxiliaryData _buildAuxiliaryData() =>
+  //     _auxiliaryData ??
+  //     BcAuxiliaryData(
+  //       metadata: _metadata,
+  //       nativeScripts: _nativeScripts,
+  //       plutusV1Scripts: _plutusV1Scripts,
+  //       plutusV2Scripts: _plutusV2Scripts,
+  //     );
+
   /// simple build - assemble transaction without any validation
   BcTransaction build() => BcTransaction(
-      body: _buildBody(), witnessSet: _witnessSet, metadata: _metadata);
+        body: _buildBody(),
+        witnessSet: _witnessSet,
+        metadata: _metadata,
+        nativeScripts: _nativeScripts,
+        plutusV1Scripts: _plutusV1Scripts,
+        plutusV2Scripts: _plutusV2Scripts,
+      );
 
   /// manually sign transacion and set single witnessSet.
   BcTransaction sign() {
@@ -105,7 +127,7 @@ class TxBuilder {
     return null;
   }
 
-  /// TODO don't support spending Byron UTxOs
+  /// TODO support spending Byron UTxOs
   Map<ShelleyAddress, ShelleyUtxoKit> _loadUtxosAndTheirKeys() {
     Set<AbstractAddress> ownedAddresses = _wallet!.addresses.toSet();
     Set<ShelleyAddress> utxos = {};
@@ -139,7 +161,7 @@ class TxBuilder {
   /// Automates building a valid, signed transaction inlcuding checking required inputs, calculating
   /// ttl, fee and change.
   ///
-  /// Coin selection must be done externally and assigned to the 'inputs' property.
+  /// If no spendRequest is supplied, coin selection will be done using largestFirst defualt function.
   /// The fee is automaticly calculated and adjusted based on the final transaction size.
   /// If no outputs are supplied, a toAddress and value are required instead.
   /// An unused changeAddress should be supplied weather it's needed or not.
@@ -381,6 +403,8 @@ class TxBuilder {
 
   void metadataHash(List<int>? metadataHash) => _metadataHash = metadataHash;
 
+  // void auxiliaryData(BcAuxiliaryData auxiliaryData) => _auxiliaryData = auxiliaryData;
+
   void validityStartInterval(int validityStartInterval) =>
       _validityStartInterval = validityStartInterval;
 
@@ -411,20 +435,43 @@ class TxBuilder {
 
   void metadata(BcMetadata metadata) => _metadata = metadata;
 
+  void metadataFromJson(Map<String, dynamic> json) =>
+      metadata(BcMetadata.fromJson(json));
+
+  void metadataFromJsonText(String jsonText) =>
+      metadataFromJson(const JsonDecoder().convert(jsonText));
+
+  void nativeScript(BcNativeScript nativeScript) =>
+      _nativeScripts.add(nativeScript);
+
+  void plutusV1Script(BcPlutusScriptV1 plutusV1Script) =>
+      _plutusV1Scripts.add(plutusV1Script);
+
+  void plutusV2Script(BcPlutusScriptV2 plutusV2Script) =>
+      _plutusV2Scripts.add(plutusV2Script);
+
+  //final map = JsonDecoder().convert(txt) as Map<String, dynamic>;
+
   /// build a single BcTransactionOutput, handle complex output construction
   void output({
     ShelleyAddress? shelleyAddress,
     String? address,
     MultiAssetBuilder? multiAssetBuilder,
     BcValue? value,
+    Coin? lovelace,
     bool autoAddMinting = true,
   }) {
     assert(address != null || shelleyAddress != null);
     assert(!(address != null && shelleyAddress != null));
     final String addr =
         shelleyAddress != null ? shelleyAddress.toBech32() : address!;
-    assert(multiAssetBuilder != null || value != null);
+    assert(multiAssetBuilder != null || value != null || lovelace != null);
     assert(!(multiAssetBuilder != null && value != null));
+    assert(!(multiAssetBuilder != null && lovelace != null));
+    assert(!(value != null && lovelace != null));
+    if (lovelace != null) {
+      value = BcValue(coin: lovelace, multiAssets: []);
+    }
     final val = value ?? multiAssetBuilder!.build();
     final output = BcTransactionOutput(address: addr, value: val);
     _outputs.add(output);

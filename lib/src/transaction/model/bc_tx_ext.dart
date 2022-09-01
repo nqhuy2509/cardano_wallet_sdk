@@ -42,7 +42,10 @@ extension BcTransactionLogic on BcTransaction {
     return BcTransaction(
         body: body,
         isValid: isValid,
-        metadata: metadata,
+        metadata: auxiliaryData.metadata,
+        nativeScripts: auxiliaryData.nativeScripts,
+        plutusV1Scripts: auxiliaryData.plutusV1Scripts,
+        plutusV2Scripts: auxiliaryData.plutusV2Scripts,
         witnessSet: witnessSet);
   }
 

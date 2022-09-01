@@ -8,6 +8,7 @@ import '../../asset/asset.dart';
 import '../../util/ada_types.dart';
 import '../../util/blake2bhash.dart';
 import '../../util/codec.dart';
+import 'bc_auxiliary_data.dart';
 import 'bc_exception.dart';
 import 'bc_abstract.dart';
 import 'bc_plutus_data.dart';
@@ -282,6 +283,8 @@ class BcTransactionBody extends BcAbstractCbor {
   @override
   Uint8List get serialize => toUint8List(toCborMap());
 
+  String get hashHex => HEX.encode(blake2bHash256(serialize));
+
   BcTransactionBody update({
     List<BcTransactionInput>? inputs,
     List<BcTransactionOutput>? outputs,
@@ -453,41 +456,45 @@ class BcMetadata extends BcAbstractCbor {
         ..addAll(value as CborMap)));
 }
 
-class BcMetadata2 extends BcAbstractCbor {
-  final CborMap cborMap;
+// class BcMetadata2 extends BcAbstractCbor {
+//   final CborMap cborMap;
 
-  BcMetadata2(this.cborMap);
+//   BcMetadata2(this.cborMap);
 
-  CborMap get cborValue => cborMap;
+//   CborMap get cborValue => cborMap;
 
-  Uint8List get metadataHash => Uint8List.fromList(blake2bHash256(serialize));
+//   Uint8List get metadataHash => Uint8List.fromList(blake2bHash256(serialize));
 
-  // BcMetadata merge(BcMetadata metadata1) =>
-  //     BcMetadata(CborMap(<CborValue, CborValue>{}
-  //       ..addAll(metadata1.cborMap)
-  //       ..addAll(cborMap)));
+//   // BcMetadata merge(BcMetadata metadata1) =>
+//   //     BcMetadata(CborMap(<CborValue, CborValue>{}
+//   //       ..addAll(metadata1.cborMap)
+//   //       ..addAll(cborMap)));
 
-  @override
-  String get json => toCborJson(cborValue);
+//   @override
+//   String get json => toCborJson(cborValue);
 
-  @override
-  Uint8List get serialize => toUint8List(cborValue);
-}
+//   @override
+//   Uint8List get serialize => toUint8List(cborValue);
+// }
 
 /// outer wrapper of a Cardano blockchain transaction.
 class BcTransaction extends BcAbstractCbor {
   final BcTransactionBody body;
   final BcTransactionWitnessSet? witnessSet;
   final bool? isValid;
-  final BcMetadata? metadata;
+  // final BcMetadata? metadata;
+  final BcAuxiliaryData auxiliaryData;
 
   // if metadata present, rebuilds body to include metadataHash
-  BcTransaction(
-      {required BcTransactionBody body,
-      this.witnessSet,
-      this.isValid = true,
-      this.metadata})
-      : body = BcTransactionBody(
+  BcTransaction({
+    required BcTransactionBody body,
+    this.witnessSet,
+    this.isValid = true,
+    BcMetadata? metadata,
+    List<BcNativeScript> nativeScripts = const [],
+    List<BcPlutusScriptV1> plutusV1Scripts = const [],
+    List<BcPlutusScriptV2> plutusV2Scripts = const [],
+  })  : body = BcTransactionBody(
           //rebuild body to include metadataHash
           inputs: body.inputs,
           outputs: body.outputs,
@@ -498,6 +505,12 @@ class BcTransaction extends BcAbstractCbor {
               : null, //optionally add hash if metadata present
           validityStartInterval: body.validityStartInterval,
           mint: body.mint,
+        ),
+        auxiliaryData = BcAuxiliaryData(
+          metadata: metadata,
+          nativeScripts: nativeScripts,
+          plutusV1Scripts: plutusV1Scripts,
+          plutusV2Scripts: plutusV2Scripts,
         );
 
   factory BcTransaction.fromCbor({required CborList list}) {
@@ -507,12 +520,18 @@ class BcTransaction extends BcAbstractCbor {
         BcTransactionWitnessSet.fromCbor(map: list[1] as CborMap);
     final bool? isValid =
         list[2] is CborBool ? (list[2] as CborBool).value : null;
-    final metadata = (list.length >= 3) ? BcMetadata(value: list[3]) : null;
+    // final metadata = (list.length >= 3) ? BcMetadata(value: list[3]) : null;
+    final auxData = (list.length >= 3 && list[3] is CborMap)
+        ? BcAuxiliaryData.fromCbor(list[3] as CborMap)
+        : BcAuxiliaryData();
     return BcTransaction(
       body: body,
       witnessSet: witnessSet,
       isValid: isValid,
-      metadata: metadata,
+      metadata: auxData.metadata,
+      nativeScripts: auxData.nativeScripts,
+      plutusV1Scripts: auxData.plutusV1Scripts,
+      plutusV2Scripts: auxData.plutusV2Scripts,
     );
   }
 
@@ -529,9 +548,7 @@ class BcTransaction extends BcAbstractCbor {
           ? CborMap({})
           : witnessSet!.toCborMap(),
       if (isValid != null) CborBool(isValid ?? true),
-      (metadata == null || metadata!.isEmpty)
-          ? const CborNull()
-          : metadata!.toCborValue(),
+      (auxiliaryData.isEmpty) ? const CborNull() : auxiliaryData.toCborMap,
     ]);
   }
 
@@ -540,7 +557,7 @@ class BcTransaction extends BcAbstractCbor {
 
   @override
   String toString() {
-    return 'BcTransaction(body: $body, witnessSet: $witnessSet, isValid: $isValid, metadata: $metadata)';
+    return 'BcTransaction(body: $body, witnessSet: $witnessSet, isValid: $isValid, auxiliaryData: $auxiliaryData)';
   }
 
   @override

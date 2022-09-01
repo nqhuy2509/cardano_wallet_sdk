@@ -4,6 +4,7 @@
 import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
 import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:logging/logging.dart';
+import 'dart:convert';
 import 'package:cbor/cbor.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
@@ -22,6 +23,58 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   final logger = Logger('BcTxTest');
+
+  group('TxBuilder -', () {
+    final fee = 200000;
+    final inputAmount = 99200000;
+    final txId =
+        'ac90bcc3d88536dea081603e7e7b65bba8eb68b78bc49ebf9a0ff3dbad9e55ac';
+    final to =
+        'addr_test1vrw6vsvwwe9vwupyfkkeweh23ztd6n0vfydwk823esdz6pc4xqcd5';
+    final expectedHex =
+        '84a50081825820ac90bcc3d88536dea081603e7e7b65bba8eb68b78bc49ebf9a0ff3dbad9e55ac00018182581d60dda6418e764ac770244dad9766ea8896dd4dec491aeb1d51cc1a2d071a05e69ec0021a00030d40031a03ef1480075820b211d9ec913486e50b032b140a58c927f3abe4f9bcf3f64f8f4c4aa2197d5a85a0f5a11907846b68656c6c6f20776f726c64';
+    final expectedHash =
+        '7b844a952d9d9bdcceabdf206ad24df1310460b7b4b421d6b05148b5a64283f2';
+    test('alonzo - JsonText', () {
+      final tx = (TxBuilder()
+            ..input(transactionId: txId, index: 0)
+            ..output(address: to, lovelace: inputAmount - fee)
+            ..ttl(66000000)
+            ..minFee(fee)
+            ..metadataFromJsonText('{"1924":"hello world"}'))
+          .build();
+      expect(tx.toHex, equals(expectedHex));
+      expect(tx.body.hashHex, equals(expectedHash));
+    });
+    test('alonzo - fromCbor', () {
+      final builder = TxBuilder()
+        ..input(transactionId: txId, index: 0)
+        ..output(address: to, lovelace: inputAmount - fee)
+        ..ttl(66000000)
+        ..minFee(fee)
+        ..metadata(BcMetadata.fromCbor(
+            map: CborMap(
+                {CborInt(BigInt.from(1924)): CborString('hello world')})));
+      final BcTransaction tx = builder.build();
+      expect(tx.toHex, equals(expectedHex));
+      expect(tx.body.hashHex, equals(expectedHash));
+    });
+    // test('alonzo - BcAuxiliaryData', () {
+    //   final builder = TxBuilder()
+    //     ..input(transactionId: txId, index: 0)
+    //     ..output(address: to, lovelace: inputAmount - fee)
+    //     ..ttl(66000000)
+    //     ..minFee(fee)
+    //     ..auxiliaryData(BcAuxiliaryData(
+    //         metadata: BcMetadata.fromCbor(
+    //             map: CborMap(
+    //                 {CborInt(BigInt.from(1924)): CborString('hello world')}))));
+    //   final BcTransaction tx = builder.build();
+    //   expect(tx.toHex, equals(expectedHex));
+    //   expect(tx.body.hashHex, equals(expectedHash));
+    // });
+  });
+
   group('Blockchain CBOR model -', () {
     test('serialize deserialize BcTransactionInput', () {
       final input1 = BcTransactionInput(
