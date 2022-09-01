@@ -18,7 +18,7 @@ BcScriptAtLeast getMultisigScript() => BcScriptAtLeast(amount: 2, scripts: [
 class MockPlutusScript extends BcPlutusScriptV1 {
   final String scriptBip32Hash;
   MockPlutusScript(this.scriptBip32Hash)
-      : super(cborHex: '4e4d01000033222220051200120011');
+      : super.parse(cborHex: '4e4d01000033222220051200120011');
   @override
   Uint8List get scriptHash => scriptCoder.decode(scriptBip32Hash);
 }
@@ -305,13 +305,13 @@ void main() {
       //addr_test1wzchaw4vxmmpws44ffh99eqzmlg6wr3swg36pqug8xn20ygxgqher
     });
 
-    test('plutusScriptSannityCheck', () {
-      final scriptHash =
-          '103,243,49,70,97,122,94,97,147,96,129,219,59,33,23,203,245,155,210,18,55,72,245,138,201,103,134,86';
-      final script =
-          BcPlutusScriptV1(cborHex: '4e4d01000033222220051200120011');
-      logger.info("plutus hash: ${script.scriptHash.join(',')}");
-    });
+    // test('plutusScriptSannityCheck', () {
+    //   final scriptHash =
+    //       '103,243,49,70,97,122,94,97,147,96,129,219,59,33,23,203,245,155,210,18,55,72,245,138,201,103,134,86';
+    //   final script =
+    //       BcPlutusScriptV1.parse(cborHex: '4e4d01000033222220051200120011');
+    //   logger.info("plutus hash: ${script.scriptHash.join(',')}");
+    // });
 
     test('enterpriseScriptAddress', () {
       final address = ShelleyAddress.enterpriseScriptAddress(

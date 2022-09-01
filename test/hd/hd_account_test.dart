@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 // import 'dart:math';
 
 class MockPlutusScript extends BcPlutusScriptV1 {
-  MockPlutusScript() : super(cborHex: '4e4d01000033222220051200120011');
+  MockPlutusScript() : super.parse(cborHex: '4e4d01000033222220051200120011');
   @override
   Uint8List get scriptHash => Bech32Coder(hrp: 'script')
       .decode('script1cda3khwqv60360rp5m7akt50m6ttapacs8rqhn5w342z7r35m37');
