@@ -6,7 +6,6 @@ import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:pinenacl/key_derivation.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
-// import 'dart:math';
 
 class MockPlutusScript extends BcPlutusScriptV1 {
   MockPlutusScript() : super.parse(cborHex: '4e4d01000033222220051200120011');

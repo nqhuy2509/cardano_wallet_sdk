@@ -37,7 +37,7 @@ void main() {
         )
       ]);
       print("expected hex: d90103a102814e4d01000033222220051200120011");
-      final hashHex0 = auxiliaryData.toHex;
+      final hashHex0 = auxiliaryData.hex;
       print("  actual hex: $hashHex0");
       final hashHex = HEX.encode(auxiliaryData.hash);
       expect(
@@ -53,7 +53,7 @@ void main() {
           cborHex: '4e4d01000033222220051200120011',
         )
       ]);
-      expect(auxiliaryData.toHex,
+      expect(auxiliaryData.hex,
           equals('d90103a103814e4d01000033222220051200120011'));
       final hashHex = HEX.encode(auxiliaryData.hash);
       expect(
@@ -119,10 +119,10 @@ void main() {
         nativeScripts: [sp1, sp2],
         plutusV1Scripts: [s1, s2],
       );
-      final cbor1 = auxiliaryData1.toCborMap;
-      final hex1 = auxiliaryData1.toHex;
+      final cbor1 = auxiliaryData1.toCborMap();
+      final hex1 = auxiliaryData1.hex;
       final auxiliaryData2 = BcAuxiliaryData.fromCbor(cbor1);
-      final hex2 = auxiliaryData2.toHex;
+      final hex2 = auxiliaryData2.hex;
       expect(hex2, equals(hex1));
       expect(auxiliaryData2, equals(auxiliaryData1));
 

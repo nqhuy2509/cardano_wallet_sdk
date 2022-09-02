@@ -1,9 +1,7 @@
 // Copyright 2021 Richard Easterling
 // SPDX-License-Identifier: Apache-2.0
 
-import 'dart:typed_data';
 import 'package:cbor/cbor.dart';
-import '../../util/blake2bhash.dart';
 import './bc_abstract.dart';
 import './bc_scripts.dart';
 import './bc_tx.dart';
@@ -23,21 +21,16 @@ class BcAuxiliaryData extends BcAbstractCbor {
 
   factory BcAuxiliaryData.fromCbor(CborMap cborMap) => _fromCborMap(cborMap);
 
-  @override
-  String get json => toCborJson(toCborMap);
-
-  @override
-  Uint8List get serialize => toUint8List(toCborMap);
-
-  Uint8List get hash => Uint8List.fromList(blake2bHash256(serialize));
-
   bool get isEmpty =>
       (metadata == null || metadata!.isEmpty) &&
       nativeScripts.isEmpty &&
       plutusV1Scripts.isEmpty &&
       plutusV2Scripts.isEmpty;
 
-  CborMap get toCborMap =>
+  @override
+  CborValue get cborValue => toCborMap();
+
+  CborMap toCborMap() =>
       //TODO metadata may not be a map
 
       (metadata != null &&

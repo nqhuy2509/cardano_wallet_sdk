@@ -38,7 +38,7 @@ void main() {
       final script =
           BcPlutusScriptV1.parse(cborHex: '4e4d01000033222220051200120011');
       final ser1 = script.serialize;
-      logger.info("plutus hex: ${script.toHex}");
+      logger.info("plutus hex: ${script.hex}");
       logger.info("plutus ser1: ${ser1.join(',')}");
       expect(script.serialize,
           equals(parseInts('78,77,1,0,0,51,34,34,32,5,18,0,18,0,17')),

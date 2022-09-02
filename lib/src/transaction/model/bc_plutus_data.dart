@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import 'package:cbor/cbor.dart';
 import 'package:hex/hex.dart';
 import '../../util/bigint_parse.dart';
-import '../../util/blake2bhash.dart';
 import './bc_abstract.dart';
 
 //    plutus_data = ;
@@ -21,15 +20,8 @@ import './bc_abstract.dart';
 //    big_nint = #6.3(bounded_bytes) ;
 
 abstract class BcPlutusData extends BcAbstractCbor {
+  @override
   CborValue get cborValue;
-
-  @override
-  String get json => toCborJson(cborValue);
-
-  @override
-  Uint8List get serialize => toUint8List(cborValue);
-
-  String get hashHex => HEX.encode(blake2bHash256(serialize));
 
   dynamic get toJson => cborToJson(cborValue);
 

@@ -74,7 +74,7 @@ void main() {
         CborValue cbor2 = cbor.decode(m1.serialize);
         final m2 = BcMetadata.fromCbor(map: cbor2);
         expect(m2, equals(m1), reason: 'round-trip via CBOR encoding');
-        final json2 = m2.toJson;
+        final json2 = m2.toJson();
         logger.info("#2 $key: ${ppEncoder.convert(json2)}");
         final m3 = BcMetadata.fromJson(json2);
         expect(m3, equals(m1), reason: 'round-trip via JSON encoding');
@@ -88,15 +88,15 @@ void main() {
     test('json-1 hex', () {
       final json1 = _readJsonKey('json-1');
       final m1 = BcMetadata(value: BcPlutusData.fromJson(json1).cborValue);
-      logger.info("json-1: ${ppEncoder.convert(m1.toJson)}");
+      logger.info("json-1: ${ppEncoder.convert(m1.toJson())}");
       final cm1 = m1.value as CborMap;
       final val4 = cm1[CborInt(BigInt.parse('7274669146951118819'))];
       expect(val4, equals(CborInt(BigInt.parse('-14814972676680046432'))));
       final hex =
           'a61bf710c72e671fae4ba01b0d205105e6e7bacf504ebc4ea3b43bb0cc76bb326f17a30d8f1b12c2c4e58b6778f6a26430783065463bdefda922656830783134666638643bb6597a178e6a15261b6827b4dcb50c5c0b71726365486c5578586c576d5a4a637859641b64f4d10bda83efe33bcd995b2806a1d75f1b12127f810d7dcee28264554a42333be153691687de9cad';
 //          'a61bf710c72e671fae4ba01b0d205105e6e7bacf504ebc4ea3b43bb0cc76bb326f17a30d8f1b12c2c4e58b6778f6a26430783065463bdefda922656830783134666638643bb6597a178e6a18971b12127f810d7dcee28264554a42333be153691687de9f671b64f4d10bda83efe33bcd995b2806a1d9971b6827b4dcb50c5c0b71726365486c5578586c576d5a4a63785964';
-      logger.info("json-1 hex: ${m1.toHex}");
-      expect(m1.toHex, equals(hex));
+      logger.info("json-1 hex: ${m1.hex}");
+      expect(m1.hex, equals(hex));
     }); //, skip: "TODO - BigInt values are not correct");
   });
 
@@ -176,8 +176,8 @@ void main() {
     test('datum hash', () {
       final p1 = BcConstrPlutusData(alternative: 0, list: BcListPlutusData([]));
       final datumHash = p1.hashHex;
-      //print("hex: ${p1.toHex}");
-      expect(p1.toHex, equals('d87980'));
+      //print("hex: ${p1.hex}");
+      expect(p1.hex, equals('d87980'));
       expect(
           datumHash,
           equals(
@@ -205,7 +205,7 @@ void main() {
             BcBytesPlutusData(
                 Uint8List.fromList(convert.utf8.encode('Hello World!')))
           ]));
-      final hex1 = p1.toHex;
+      final hex1 = p1.hex;
       expect(hex1, equals('d8799f4c48656c6c6f20576f726c6421ff'));
     }, skip: 'TODO see note above');
   });

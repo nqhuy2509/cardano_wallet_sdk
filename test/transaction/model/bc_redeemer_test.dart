@@ -30,7 +30,7 @@ void main() {
       );
       final cbor = redeemer1.cborValue;
       logger.info(cbor);
-      final hex1 = redeemer1.toHex;
+      final hex1 = redeemer1.hex;
       logger.info(hex1);
     });
     test('cbor2', () {
@@ -42,7 +42,7 @@ void main() {
       );
       final cbor = redeemer1.cborValue;
       logger.info(cbor);
-      final hex1 = redeemer1.toHex;
+      final hex1 = redeemer1.hex;
       logger.info(hex1);
       expect(hex1, equals('8400001907e5821906a41a00074534'));
     });

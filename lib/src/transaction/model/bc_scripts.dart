@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:bip32_ed25519/bip32_ed25519.dart';
-import 'package:hex/hex.dart';
 import 'package:cbor/cbor.dart';
+import 'package:hex/hex.dart';
 import '../../crypto/key_util.dart';
 import '../../util/blake2bhash.dart';
 import '../../util/codec.dart';
@@ -44,7 +44,7 @@ enum BcScriptType {
 
 abstract class BcAbstractScript extends BcAbstractCbor {
   BcScriptType get type;
-  // TODO rename hash?
+
   Uint8List get scriptHash => Uint8List.fromList(blake2bHash224(_hashBytes));
 
   List<int> get _hashBytes => [
@@ -56,72 +56,42 @@ abstract class BcAbstractScript extends BcAbstractCbor {
 abstract class BcPlutusScript extends BcAbstractScript {
   @override
   final BcScriptType type;
-  final CborBytes cborValue;
+  final CborBytes cborBytes;
   final String? description;
 
   BcPlutusScript({
     required this.type,
-    required this.cborValue,
+    required this.cborBytes,
     this.description,
   });
   BcPlutusScript.parse(
       {required String cborHex, required this.type, this.description})
-      : cborValue = cbor.decode(HEX.decode(cborHex)) as CborBytes;
+      : cborBytes = cbor.decode(HEX.decode(cborHex)) as CborBytes;
 
-  // factory BcPlutusScript.fromCbor(CborBytes cborBytes, {String? description}) =>
-  //     cborBytes.bytes[0] == BcScriptType.plutusV1.header
-  //         ? BcPlutusScriptV1(
-  //             description: description,
-  //             cborHex: HEX.encode(cborBytes.bytes.sublist(1)),
-  //           )
-  //         : BcPlutusScriptV2(
-  //             description: description,
-  //             cborHex: HEX.encode(cborBytes.bytes.sublist(1)),
-  //           );
   factory BcPlutusScript.fromCbor(CborBytes cborBytes,
           {required BcScriptType type, String? description}) =>
       type == BcScriptType.plutusV1
           ? BcPlutusScriptV1(
               description: description,
-              cborValue: cborBytes,
+              cborBytes: cborBytes,
             )
           : BcPlutusScriptV2(
               description: description,
-              cborValue: cborBytes,
+              cborBytes: cborBytes,
             );
 
-  // CborBytes toCborBytes() => CborBytes(_bytes);
-  //   final dec = cbor.decode(_bytes);
-  //   return dec as CborBytes;
-  // }
-  // => cbor.decode(serialize) as CborBytes;
-
-  CborBytes get cborBytes => cborValue;
-
-  String get cborHex => toHex;
-
-  // Uint8List get _bytes =>
-  //     uint8ListFromHex(cborHex, utf8EncodeOnHexFailure: true);
-
   @override
-  Uint8List get serialize => toUint8List(cborValue);
+  CborValue get cborValue => cborBytes;
 
   @override
   String toString() {
-    return 'BcPlutusScript(type: $type, description: $description, cborHex: $cborHex)';
+    return 'BcPlutusScript(type: $type, description: $description, cborHex: $hex)';
   }
-
-  // TODO rename hash?
-  // @override
-  // Uint8List get scriptHash => Uint8List.fromList(blake2bHash224(_hashBytes));
-
-  @override
-  String get json => toCborJson(cborBytes);
 
   Map<String, dynamic> get toJson => <String, dynamic>{
         if (description != null) 'description': description,
         'type': type.name,
-        'cborHex': cborHex,
+        'cborHex': hex,
       };
 
   factory BcPlutusScript.fromJson(Map<String, dynamic> json) =>
@@ -137,11 +107,12 @@ abstract class BcPlutusScript extends BcAbstractScript {
 }
 
 class BcPlutusScriptV1 extends BcPlutusScript {
-  BcPlutusScriptV1({required CborBytes cborValue, String? description})
+  BcPlutusScriptV1({required CborBytes cborBytes, String? description})
       : super(
-            cborValue: cborValue,
+            cborBytes: cborBytes,
             description: description,
             type: BcScriptType.plutusV1);
+
   BcPlutusScriptV1.parse({required String cborHex, String? description})
       : super.parse(
           cborHex: cborHex,
@@ -151,11 +122,12 @@ class BcPlutusScriptV1 extends BcPlutusScript {
 }
 
 class BcPlutusScriptV2 extends BcPlutusScript {
-  BcPlutusScriptV2({required CborBytes cborValue, String? description})
+  BcPlutusScriptV2({required CborBytes cborBytes, String? description})
       : super(
-            cborValue: cborValue,
+            cborBytes: cborBytes,
             description: description,
             type: BcScriptType.plutusV2);
+
   BcPlutusScriptV2.parse({required String cborHex, String? description})
       : super.parse(
           cborHex: cborHex,
@@ -188,10 +160,10 @@ abstract class BcNativeScript extends BcAbstractScript {
   final BcScriptType type = BcScriptType.native;
   BcNativeScriptType get nativeType;
 
-  CborList toCborList();
-
   @override
-  Uint8List get serialize => toUint8List(toCborList());
+  CborValue get cborValue => toCborList();
+
+  CborList toCborList();
 
   static BcNativeScript fromCbor({required CborList list}) {
     final selector = list[0] as CborSmallInt;
@@ -226,9 +198,6 @@ abstract class BcNativeScript extends BcAbstractScript {
         BcNativeScript.fromCbor(list: blob as CborList),
     ];
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 
   Map<String, dynamic> get toJson;
 

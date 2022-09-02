@@ -1,18 +1,16 @@
 // Copyright 2021 Richard Easterling
 // SPDX-License-Identifier: Apache-2.0
 
-import 'dart:typed_data';
 import 'package:cbor/cbor.dart';
 import 'package:hex/hex.dart';
 import '../../asset/asset.dart';
 import '../../util/ada_types.dart';
-import '../../util/blake2bhash.dart';
 import '../../util/codec.dart';
-import 'bc_auxiliary_data.dart';
-import 'bc_exception.dart';
-import 'bc_abstract.dart';
-import 'bc_plutus_data.dart';
-import 'bc_scripts.dart';
+import './bc_auxiliary_data.dart';
+import './bc_exception.dart';
+import './bc_abstract.dart';
+import './bc_plutus_data.dart';
+import './bc_scripts.dart';
 
 class BcAsset {
   final String name;
@@ -59,6 +57,9 @@ class BcMultiAsset extends BcAbstractCbor {
     return BcMultiAsset(policyId: policyId, assets: assets);
   }
 
+  @override
+  CborValue get cborValue => toCborMap();
+
   //
   //    h'329728F73683FE04364631C27A7912538C116D802416CA1EAF2D7A96': {h'736174636F696E': 4000},
   //
@@ -72,15 +73,9 @@ class BcMultiAsset extends BcAbstractCbor {
   }
 
   @override
-  Uint8List get serialize => toUint8List(toCborMap());
-
-  @override
   String toString() {
     return 'BcMultiAsset(policyId: $policyId, assets: $assets)';
   }
-
-  @override
-  String get json => toCborJson(toCborMap());
 }
 
 /// Points to an UTXO unspent change entry using a transactionId and index.
@@ -98,21 +93,17 @@ class BcTransactionInput extends BcAbstractCbor {
         index: (list[1] as CborSmallInt).toInt());
   }
 
+  @override
+  CborValue get cborValue => toCborList();
   CborList toCborList() {
     return CborList(
         [CborBytes(HEX.decode(transactionId)), CborSmallInt(index)]);
   }
 
   @override
-  Uint8List get serialize => toUint8List(toCborList());
-
-  @override
   String toString() {
     return 'BcTransactionInput(transactionId: $transactionId, index: $index)';
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 }
 
 /// Can be a simple ADA amount using coin or a combination of ADA and Native Tokens and their amounts.
@@ -133,6 +124,9 @@ class BcValue extends BcAbstractCbor {
         coin: (list[0] as CborInt).toInt(), multiAssets: multiAssets);
   }
 
+  @override
+  CborValue get cborValue => toCborList();
+
   //
   // [
   //  340000,
@@ -150,15 +144,9 @@ class BcValue extends BcAbstractCbor {
   }
 
   @override
-  Uint8List get serialize => toUint8List(toCborList());
-
-  @override
   String toString() {
     return 'BcValue(coin: $coin, multiAssets: $multiAssets)';
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 }
 
 /// Address to send to and amount to send.
@@ -185,6 +173,9 @@ class BcTransactionOutput extends BcAbstractCbor {
     }
   }
 
+  @override
+  CborValue get cborValue => toCborList();
+
   CborList toCborList() {
     //length should always be 2
     return CborList([
@@ -194,15 +185,9 @@ class BcTransactionOutput extends BcAbstractCbor {
   }
 
   @override
-  Uint8List get serialize => toUint8List(toCborList());
-
-  @override
   String toString() {
     return 'BcTransactionOutput(address: $address, value: $value)';
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 }
 
 /// Core of the Shelley transaction that is signed.
@@ -255,6 +240,9 @@ class BcTransactionBody extends BcAbstractCbor {
     );
   }
 
+  @override
+  CborValue get cborValue => toCborMap();
+
   CborMap toCborMap() {
     return CborMap({
       //0:inputs
@@ -280,11 +268,6 @@ class BcTransactionBody extends BcAbstractCbor {
     });
   }
 
-  @override
-  Uint8List get serialize => toUint8List(toCborMap());
-
-  String get hashHex => HEX.encode(blake2bHash256(serialize));
-
   BcTransactionBody update({
     List<BcTransactionInput>? inputs,
     List<BcTransactionOutput>? outputs,
@@ -309,9 +292,6 @@ class BcTransactionBody extends BcAbstractCbor {
   String toString() {
     return 'BcTransactionBody(inputs: $inputs, outputs: $outputs, fee: $fee, ttl: $ttl, metadataHash: $metadataHash, validityStartInterval: $validityStartInterval, mint: $mint)';
   }
-
-  @override
-  String get json => toCborJson(toCborMap());
 }
 
 /// A witness is a public key and a signature (a signed hash of the body) used for on-chain validation.
@@ -329,20 +309,17 @@ class BcVkeyWitness extends BcAbstractCbor {
         signature: (list[1] as CborBytes).bytes);
   }
 
+  @override
+  CborValue get cborValue => toCborList();
+
   CborList toCborList() {
     return CborList([CborBytes(vkey), CborBytes(signature)]);
   }
 
   @override
-  Uint8List get serialize => toUint8List(toCborList());
-
-  @override
   String toString() {
     return 'BcVkeyWitness(vkey: $vkey, signature: $signature)';
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 }
 
 enum BcWitnessSetType {
@@ -386,6 +363,9 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
     );
   }
 
+  @override
+  CborValue get cborValue => toCborMap();
+
   CborValue toCborMap() {
     return CborMap({
       //0:verificationKey key
@@ -403,15 +383,9 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
   bool get isNotEmpty => !isEmpty;
 
   @override
-  Uint8List get serialize => toUint8List(toCborMap());
-
-  @override
   String toString() {
     return 'BcTransactionWitnessSet(vkeyWitnesses: $vkeyWitnesses, nativeScripts: $nativeScripts)';
   }
-
-  @override
-  String get json => toCborJson(toCborMap());
 }
 
 ///
@@ -429,26 +403,17 @@ class BcMetadata extends BcAbstractCbor {
   factory BcMetadata.fromJson(dynamic json) =>
       BcMetadata(value: BcPlutusData.fromJson(json).cborValue);
 
-  CborValue toCborValue() => value;
-
   @override
-  Uint8List get serialize => toUint8List(value);
-
-  String get toCborHex => HEX.encode(serialize);
-
-  List<int> get hash => blake2bHash256(serialize);
+  CborValue get cborValue => value;
 
   bool get isEmpty => value is CborNull;
 
   @override
   String toString() {
-    return 'BcMetadata(value: ${toCborJson(value)})';
+    return 'BcMetadata(value: $cborJson)';
   }
 
-  @override
-  String get json => toCborJson(toCborValue());
-
-  dynamic get toJson => BcPlutusData.cborToJson(value);
+  dynamic toJson() => BcPlutusData.cborToJson(value);
 
   BcMetadata merge(BcMetadata metadata1) => BcMetadata(
       value: CborMap(<CborValue, CborValue>{}
@@ -456,33 +421,11 @@ class BcMetadata extends BcAbstractCbor {
         ..addAll(value as CborMap)));
 }
 
-// class BcMetadata2 extends BcAbstractCbor {
-//   final CborMap cborMap;
-
-//   BcMetadata2(this.cborMap);
-
-//   CborMap get cborValue => cborMap;
-
-//   Uint8List get metadataHash => Uint8List.fromList(blake2bHash256(serialize));
-
-//   // BcMetadata merge(BcMetadata metadata1) =>
-//   //     BcMetadata(CborMap(<CborValue, CborValue>{}
-//   //       ..addAll(metadata1.cborMap)
-//   //       ..addAll(cborMap)));
-
-//   @override
-//   String get json => toCborJson(cborValue);
-
-//   @override
-//   Uint8List get serialize => toUint8List(cborValue);
-// }
-
 /// outer wrapper of a Cardano blockchain transaction.
 class BcTransaction extends BcAbstractCbor {
   final BcTransactionBody body;
   final BcTransactionWitnessSet? witnessSet;
   final bool? isValid;
-  // final BcMetadata? metadata;
   final BcAuxiliaryData auxiliaryData;
 
   // if metadata present, rebuilds body to include metadataHash
@@ -541,6 +484,9 @@ class BcTransaction extends BcAbstractCbor {
     return BcTransaction.fromCbor(list: cborList);
   }
 
+  @override
+  CborValue get cborValue => toCborList();
+
   CborValue toCborList() {
     return CborList([
       body.toCborMap(),
@@ -548,18 +494,12 @@ class BcTransaction extends BcAbstractCbor {
           ? CborMap({})
           : witnessSet!.toCborMap(),
       if (isValid != null) CborBool(isValid ?? true),
-      (auxiliaryData.isEmpty) ? const CborNull() : auxiliaryData.toCborMap,
+      (auxiliaryData.isEmpty) ? const CborNull() : auxiliaryData.toCborMap(),
     ]);
   }
-
-  @override
-  Uint8List get serialize => toUint8List(toCborList());
 
   @override
   String toString() {
     return 'BcTransaction(body: $body, witnessSet: $witnessSet, isValid: $isValid, auxiliaryData: $auxiliaryData)';
   }
-
-  @override
-  String get json => toCborJson(toCborList());
 }

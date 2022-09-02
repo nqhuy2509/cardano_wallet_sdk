@@ -43,7 +43,7 @@ void main() {
             ..minFee(fee)
             ..metadataFromJsonText('{"1924":"hello world"}'))
           .build();
-      expect(tx.toHex, equals(expectedHex));
+      expect(tx.hex, equals(expectedHex));
       expect(tx.body.hashHex, equals(expectedHash));
     });
     test('alonzo - fromCbor', () {
@@ -56,7 +56,7 @@ void main() {
             map: CborMap(
                 {CborInt(BigInt.from(1924)): CborString('hello world')})));
       final BcTransaction tx = builder.build();
-      expect(tx.toHex, equals(expectedHex));
+      expect(tx.hex, equals(expectedHex));
       expect(tx.body.hashHex, equals(expectedHash));
     });
     // test('alonzo - BcAuxiliaryData', () {
@@ -70,7 +70,7 @@ void main() {
     //             map: CborMap(
     //                 {CborInt(BigInt.from(1924)): CborString('hello world')}))));
     //   final BcTransaction tx = builder.build();
-    //   expect(tx.toHex, equals(expectedHex));
+    //   expect(tx.hex, equals(expectedHex));
     //   expect(tx.body.hashHex, equals(expectedHash));
     // });
   });
@@ -145,12 +145,12 @@ void main() {
           '84a5008182582073198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002010182825839000916a5fed4589d910691b85addf608dceee4d9d60d4c9a4d2a925026c3229b212ba7ef8643cd8f7e38d6279336d61a40d228b036f40feed6199c40825839008c5bf0f2af6f1ef08bb3f6ec702dd16e1c514b7e1d12f7549b47db9f4d943c7af0aaec774757d4745d1a2c8dd3220e6ec2c9df23f757a2f8821a00053020a3581c329728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96a247736174636f696e190fa047446174636f696e19044c581c6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7a140192328581c449728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96a147666174636f696e191388021a00059d5d031a018fb29a09a3581c329728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96a247736174636f696e190fa047446174636f696e19044c581c6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7a140192328581c449728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96a147666174636f696e191388a0f5f6';
       final expectedTx = cbor.decode(HEX.decode(expectedHex));
       //print("expected: ${const CborJsonEncoder().convert(expectedTx)}");
-      expect(tx.toHex, expectedHex, reason: '1st serialization good');
+      expect(tx.hex, expectedHex, reason: '1st serialization good');
 
-      final BcTransaction tx2 = BcTransaction.fromHex(tx.toHex);
+      final BcTransaction tx2 = BcTransaction.fromHex(tx.hex);
       expect(tx, tx2, reason: '1st serialization good');
-      //print(tx2.toHex);
-      expect(tx.toHex, tx2.toHex);
+      //print(tx2.hex);
+      expect(tx.hex, tx2.hex);
       //print(tx2.toJson(prettyPrint: true));
       //print(codec.decodedToJSON()); // [1,2,3],67.89,10,{"a":"a/ur1","b":1234567899,"c":"19/04/2020"},"^[12]g"
     });
@@ -159,7 +159,7 @@ void main() {
       const txHex =
           '84a40082825820bd7b306c0d67e6fa339e71115d7e951fac8d614e4d8b98e3447804c817c8c5690182582033cbaa6ee8e00a8e0cfdc34bde635e90107d167cbf73e7bb8162887eb249d5b201018282583900d3a1d1a98b2a1ac5349e09242ddbeca7d831da17577d3bbe52b52361269a1cdb0100c324b16c5a555baca45af12098d0beb2abc20808a6171a002191c0825839005a86fcbd65e9deb94da1dd885acb6b8fe149ac9e693ab22e9fc4ccc73e61daf0df57f1cc6fdb15cea66150d63fa3db71c90f8f337960243b1a00417389021a0002a885031a03c9f913a100828258204564d60dd3422b0c35744013666a6ec636ee6343b1e769cef8b614861681d33258400db98ae843765bf535ec3f98daa40dd5da7926d7414d85850662d93bc613f8dbe726b89c2c31c44b10c3a77883d7a72b53500cfc358f7fbfdb6ffec87c318106825820424fb5734588732548fa0f9c8753b1cb527ad09e24d79a305ed5518ccd6299e658407e1134f278f973a771c10c7bd0f925f7811e9fadb9600835925d43791d582d9be6997b939509366e33af3eb760af249487d4858ed59da4a466176c786c57fe07f5f6';
       final tx = BcTransaction.fromHex(txHex);
-      logger.info(tx.json);
+      logger.info(tx.cborJson);
     });
     test('signPaymentTransactionMultiAccount', () {
       final List<BcTransactionInput> inputs = [
@@ -210,7 +210,7 @@ void main() {
         validityStartInterval: 0,
       );
       final tx = BcTransaction(body: body, witnessSet: null, metadata: null);
-      final txHex = tx.toHex;
+      final txHex = tx.hex;
       //print(txHex);
       const expectedHex =
           '84a4008282582073198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002018258208e03a93578dc0acd523a4dd861793068a06a68b8a6c7358d0c965d2864067b68000184825839000916a5fed4589d910691b85addf608dceee4d9d60d4c9a4d2a925026c3229b212ba7ef8643cd8f7e38d6279336d61a40d228b036f40feed61a004c4b40825839008c5bf0f2af6f1ef08bb3f6ec702dd16e1c514b7e1d12f7549b47db9f4d943c7af0aaec774757d4745d1a2c8dd3220e6ec2c9df23f757a2f81a3aa5102982583900c93b6cac143fe60f8914f44a899f5329433ccec3d53721ef350a0fd8cb873402c73ad8f239f76fb559bb4e3bcff22b310b01eadd3ce205e71a007a1200825839001c1ffaf141ebbb8e3a7072bb15f50f938b994c82de2d175f358fc942441f00edfe1b8d6a84f0d19c25a9c8829442160c0b5c758094c423441a3b1b1aa3021a000b3aba031a018fb29aa0f5f6';

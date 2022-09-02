@@ -2,12 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:bip32_ed25519/bip32_ed25519.dart';
-//import 'package:hex/hex.dart';
 import 'package:cbor/cbor.dart';
-// import '../../crypto/key_util.dart';
-// import '../../util/blake2bhash.dart';
-// import '../../util/codec.dart';
-// import './bc_exception.dart';
 import './bc_abstract.dart';
 import './bc_plutus_data.dart';
 
@@ -63,18 +58,13 @@ class BcRedeemer extends BcAbstractCbor {
     }
   }
 
+  @override
   CborValue get cborValue => CborList([
         CborSmallInt(tag.value),
         CborInt(index),
         data.cborValue,
         exUnits.cborValue,
       ]);
-
-  @override
-  String get json => toCborJson(cborValue);
-
-  @override
-  Uint8List get serialize => toUint8List(cborValue);
 }
 
 class BcExUnits {
