@@ -11,6 +11,7 @@ export './src/blockchain/blockfrost/dio_call.dart';
 export './src/blockchain/blockchain_adapter_factory.dart';
 export './src/blockchain/blockchain_adapter.dart';
 export './src/blockchain/blockchain_cache.dart';
+export './src/crypto/key_util.dart';
 export './src/crypto/mnemonic.dart';
 export './src/crypto/mnemonic_english.dart';
 export './src/crypto/mnemonic_validation.dart';

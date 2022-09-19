@@ -380,10 +380,13 @@ class HdAccount implements HdAddressSigner, HdLegacyReceiver {
 ///
 /// 99% of the time you'll just create a master using a mnemonic and get the
 /// default account:
-///
+/// ```
 ///   HdAccount account = HdMaster.mnemonic(['head', 'guard',...]).account();
-///
+/// ```
 /// Unless specified, the default network is mainnet.
+///
+/// HdMaster does not store mnemonic codes, only the derived master keys. It's the responsibility
+/// of the application to manage mnemonic-user interaction properly.
 ///
 class HdMaster implements HdAbstract {
   @override
@@ -462,6 +465,10 @@ class HdMaster implements HdAbstract {
       accountIndex: accountIndex,
     );
   }
+
+  /// convinience method to generate new 24 english word mnemonic phrase
+  static ValidMnemonicPhrase generateMnemonic() =>
+      generateNewMnemonic(loadWordsFunction: loadEnglishMnemonicWords);
 
   // static const _defaultAcctPath = "m/1852'/1815'/0'";
   String _acctPathTemplate(int accountIndex) => "m/1852'/1815'/$accountIndex'";

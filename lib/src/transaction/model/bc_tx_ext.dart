@@ -37,8 +37,14 @@ extension BcTransactionLogic on BcTransaction {
     List<BcVkeyWitness> witnesses = signingKeys
         .map((k) => signedWitness(k, fakeSignature: fakeSignature))
         .toList();
-    final witnessSet =
-        BcTransactionWitnessSet(vkeyWitnesses: witnesses, nativeScripts: []);
+    final signedWitnessSet = BcTransactionWitnessSet(
+        vkeyWitnesses: witnesses,
+        nativeScripts: witnessSet?.nativeScripts ?? [],
+        bootstrapWitnesses: witnessSet?.bootstrapWitnesses ?? [],
+        plutusScriptsV1: witnessSet?.plutusScriptsV1 ?? [],
+        plutusDataList: witnessSet?.plutusDataList ?? [],
+        redeemers: witnessSet?.redeemers ?? [],
+        plutusScriptsV2: witnessSet?.plutusScriptsV2 ?? []);
     return BcTransaction(
         body: body,
         isValid: isValid,
@@ -46,7 +52,7 @@ extension BcTransactionLogic on BcTransaction {
         nativeScripts: auxiliaryData.nativeScripts,
         plutusV1Scripts: auxiliaryData.plutusV1Scripts,
         plutusV2Scripts: auxiliaryData.plutusV2Scripts,
-        witnessSet: witnessSet);
+        witnessSet: signedWitnessSet);
   }
 
   /// Generate fake signature that just has to be correct length for size calculation.

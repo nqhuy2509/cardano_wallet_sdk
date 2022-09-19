@@ -1,6 +1,7 @@
 // Copyright 2021 Richard Easterling
 // SPDX-License-Identifier: Apache-2.0
 
+import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:cbor/cbor.dart';
 import 'package:hex/hex.dart';
 import '../../asset/asset.dart';
@@ -11,6 +12,7 @@ import './bc_exception.dart';
 import './bc_abstract.dart';
 import './bc_plutus_data.dart';
 import './bc_scripts.dart';
+import './bc_redeemer.dart';
 
 class BcAsset {
   final String name;
@@ -323,44 +325,101 @@ class BcVkeyWitness extends BcAbstractCbor {
 }
 
 enum BcWitnessSetType {
-  verificationKey,
-  nativeScript,
-  bootstrap,
-  plutusScript,
-  plutusData,
-  redeemer
+  verificationKey(0),
+  nativeScript(1),
+  bootstrap(2),
+  plutusScriptV1(3),
+  plutusData(4),
+  redeemer(5),
+  plutusScriptV2(6);
+
+  final int value;
+  const BcWitnessSetType(this.value);
 }
 
-/// this can be transaction signatures or a full blown smart contract
+/// The witness set can be transaction signatures, native scripts, a bootstrap witnesses, plutus V1 or V2 scripts, plutus data or redeemers.
 class BcTransactionWitnessSet extends BcAbstractCbor {
+  //    transaction_witness_set =
+  //    { ? 0: [* vkeywitness ]
+  //  , ? 1: [* native_script ]
+  //  , ? 2: [* bootstrap_witness ]
+  //  , ? 3: [* plutus_v1_script ]
+  //  , ? 4: [* plutus_data ]
+  //  , ? 5: [* redeemer ]
+  //  , ? 6: [* plutus_v2_script ] ; New
+  //    }
   final List<BcVkeyWitness> vkeyWitnesses;
   final List<BcNativeScript> nativeScripts;
+  final List<BcBootstrapWitness> bootstrapWitnesses;
+  final List<BcPlutusScriptV1> plutusScriptsV1;
+  final List<BcPlutusData> plutusDataList;
+  final List<BcRedeemer> redeemers;
+  final List<BcPlutusScriptV2> plutusScriptsV2;
   BcTransactionWitnessSet({
     required this.vkeyWitnesses,
     required this.nativeScripts,
+    required this.bootstrapWitnesses,
+    required this.plutusScriptsV1,
+    required this.plutusDataList,
+    required this.redeemers,
+    required this.plutusScriptsV2,
   });
 
-  // transaction_witness_set =
-  //  { ? 0: [* vkeywitness ]
-  //  , ? 1: [* native_script ]
-  //  , ? 2: [* bootstrap_witness ]
-  //  In the future, new kinds of witnesses can be added like this:
-  //  , ? 4: [* foo_script ]
-  //  , ? 5: [* plutus_script ]
-  //    }
   factory BcTransactionWitnessSet.fromCbor({required CborMap map}) {
-    final witnessSetRawList = map[0] == null ? [] : (map[0] as CborList);
-    final List<BcVkeyWitness> vkeyWitnesses = witnessSetRawList
-        .map((item) => BcVkeyWitness(vkey: item[0], signature: item[1]))
-        .toList();
-    final scriptRawList = map[1] == null ? [] : map[1] as List;
-    final List<BcNativeScript> nativeScripts = scriptRawList
-        .map((list) => BcNativeScript.fromCbor(list: list))
-        .toList();
+    final List<BcVkeyWitness> vkeyWitnesses = map[_verificationKey] == null
+        ? []
+        : (map[_verificationKey] as List)
+            .map((list) => BcVkeyWitness.fromCbor(list: list))
+            .toList();
+    final List<BcNativeScript> nativeScripts = map[_nativeScript] == null
+        ? []
+        : (map[_nativeScript] as List)
+            .map((list) => BcNativeScript.fromCbor(list: list))
+            .toList();
+    final List<BcBootstrapWitness> bootstrapWitnesses = map[_bootstrap] == null
+        ? []
+        : (map[_bootstrap] as List)
+            .map((list) => BcBootstrapWitness.fromCbor(list: list))
+            .toList();
+    final List<BcPlutusScriptV1> plutusScriptsV1 = map[_plutusScriptV1] == null
+        ? []
+        : (map[_plutusScriptV1] as List)
+            .map((bytes) =>
+                BcPlutusScript.fromCbor(bytes, type: BcScriptType.plutusV1)
+                    as BcPlutusScriptV1)
+            .toList();
+    final List<BcPlutusData> plutusDataList = map[_plutusData] == null
+        ? []
+        : (map[_plutusData] as List)
+            .map((list) => BcPlutusData.fromCbor(list))
+            .toList();
+    final List<BcRedeemer> redeemers = map[_redeemer] == null
+        ? []
+        : (map[_redeemer] as List)
+            .map((list) => BcRedeemer.fromCbor(list))
+            .toList();
+    final List<BcPlutusScriptV2> plutusScriptsV2 = map[_plutusScriptV2] == null
+        ? []
+        : (map[_plutusScriptV2] as List)
+            .map((bytes) =>
+                BcPlutusScript.fromCbor(bytes, type: BcScriptType.plutusV2)
+                    as BcPlutusScriptV2)
+            .toList();
     return BcTransactionWitnessSet(
       vkeyWitnesses: vkeyWitnesses,
       nativeScripts: nativeScripts,
+      bootstrapWitnesses: bootstrapWitnesses,
+      plutusScriptsV1: plutusScriptsV1,
+      plutusDataList: plutusDataList,
+      redeemers: redeemers,
+      plutusScriptsV2: plutusScriptsV2,
     );
+  }
+
+  factory BcTransactionWitnessSet.fromHex(String transactionHex) {
+    final buff = HEX.decode(transactionHex);
+    final cborMap = cbor.decode(buff) as CborMap;
+    return BcTransactionWitnessSet.fromCbor(map: cborMap);
   }
 
   @override
@@ -370,28 +429,88 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
     return CborMap({
       //0:verificationKey key
       if (vkeyWitnesses.isNotEmpty)
-        CborSmallInt(BcWitnessSetType.verificationKey.index):
-            CborList.of(vkeyWitnesses.map((w) => w.toCborList())),
+        _verificationKey: CborList.of(vkeyWitnesses.map((w) => w.toCborList())),
       //1:nativeScript key
       if (nativeScripts.isNotEmpty)
-        CborSmallInt(BcWitnessSetType.nativeScript.index):
-            CborList.of(nativeScripts.map((s) => s.toCborList())),
+        _nativeScript: CborList.of(nativeScripts.map((s) => s.toCborList())),
+      //2:bootstrap key
+      if (bootstrapWitnesses.isNotEmpty)
+        _bootstrap: CborList.of(bootstrapWitnesses.map((s) => s.toCborList())),
+      //3:plutusScriptsV1 key
+      if (plutusScriptsV1.isNotEmpty)
+        _plutusScriptV1: CborList.of(plutusScriptsV1.map((s) => s.cborBytes)),
+      //5:redeemer key
+      if (redeemers.isNotEmpty)
+        _redeemer: CborList.of(redeemers.map((s) => s.cborValue)),
+      //6:plutusScriptsV2 key
+      if (plutusScriptsV2.isNotEmpty)
+        _plutusScriptV2: CborList.of(plutusScriptsV2.map((s) => s.cborBytes)),
     });
   }
 
-  bool get isEmpty => vkeyWitnesses.isEmpty && nativeScripts.isEmpty;
+  bool get isEmpty =>
+      vkeyWitnesses.isEmpty &&
+      nativeScripts.isEmpty &&
+      bootstrapWitnesses.isEmpty &&
+      plutusScriptsV1.isEmpty &&
+      plutusDataList.isEmpty &&
+      redeemers.isEmpty &&
+      plutusScriptsV2.isEmpty;
+
   bool get isNotEmpty => !isEmpty;
 
   @override
-  String toString() {
-    return 'BcTransactionWitnessSet(vkeyWitnesses: $vkeyWitnesses, nativeScripts: $nativeScripts)';
-  }
+  String toString() =>
+      'BcTransactionWitnessSet(vkeyWitnesses: $vkeyWitnesses, nativeScripts: $nativeScripts, bootstrapWitnesses: $bootstrapWitnesses, $plutusScriptsV1, plutusDataList: $plutusDataList, redeemers: $redeemers, plutusScriptsV2: $plutusScriptsV2)';
+
+  static final _verificationKey =
+      CborSmallInt(BcWitnessSetType.verificationKey.value);
+  static final _nativeScript =
+      CborSmallInt(BcWitnessSetType.nativeScript.value);
+  static final _bootstrap = CborSmallInt(BcWitnessSetType.bootstrap.value);
+  static final _plutusScriptV1 =
+      CborSmallInt(BcWitnessSetType.plutusScriptV1.value);
+  static final _plutusData = CborSmallInt(BcWitnessSetType.plutusData.value);
+  static final _redeemer = CborSmallInt(BcWitnessSetType.redeemer.value);
+  static final _plutusScriptV2 =
+      CborSmallInt(BcWitnessSetType.plutusScriptV2.value);
+}
+
+class BcBootstrapWitness extends BcAbstractCbor {
+  final Uint8List publicKey;
+  final Uint8List signature;
+  final Uint8List chainCode;
+  final Uint8List attributes;
+
+  BcBootstrapWitness({
+    required this.publicKey,
+    required this.signature,
+    required this.chainCode,
+    required this.attributes,
+  });
+
+  factory BcBootstrapWitness.fromCbor({required CborList list}) =>
+      BcBootstrapWitness(
+        publicKey: Uint8List.fromList((list[0] as CborBytes).bytes),
+        signature: Uint8List.fromList((list[1] as CborBytes).bytes),
+        chainCode: Uint8List.fromList((list[2] as CborBytes).bytes),
+        attributes: Uint8List.fromList((list[3] as CborBytes).bytes),
+      );
+
+  CborList toCborList() => CborList([
+        CborBytes(publicKey),
+        CborBytes(signature),
+        CborBytes(chainCode),
+        CborBytes(chainCode),
+      ]);
+
+  @override
+  CborValue get cborValue => toCborList();
 }
 
 ///
 /// Allow arbitrary metadata via raw CBOR type. Use CborValue and ListBuilder instances to compose complex nested structures.
 ///
-
 class BcMetadata extends BcAbstractCbor {
   final CborValue value;
   BcMetadata({

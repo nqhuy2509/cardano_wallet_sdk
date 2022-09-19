@@ -23,7 +23,242 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   final logger = Logger('BcTxTest');
+  group('witness set -', () {
+    test('serialize', () {
+      BcTransactionWitnessSet ws1 = BcTransactionWitnessSet(
+        nativeScripts: [],
+        bootstrapWitnesses: [],
+        plutusScriptsV1: [
+          BcPlutusScriptV1.parse(cborHex: '4e3d01000033222220051200120011')
+        ],
+        plutusDataList: [],
+        redeemers: [],
+        plutusScriptsV2: [
+          BcPlutusScriptV2.parse(cborHex: '4e4d01000033222220051200120011'),
+          BcPlutusScriptV2.parse(cborHex: '4e5def000033222220051200120011'),
+        ],
+        vkeyWitnesses: [],
+      );
+      final ws2 = BcTransactionWitnessSet.fromHex(ws1.hex);
+      expect(ws2, equals(ws1));
+    });
+    test('deserialize', () {
+      final hex =
+          'a203814e3d0100003322222005120012001106824e4d010000332222200512001200114e5def000033222220051200120011';
+      final ws = BcTransactionWitnessSet.fromHex(hex);
+      expect(ws.plutusScriptsV1.length, equals(1));
+      expect(ws.plutusScriptsV2.length, equals(2));
+    });
+  });
+  group('serialize -', () {
+    test('plutus and native scripts', () {
+      final account1 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
+      final account2 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
+      final fee = 367965;
+      final ttl = 26194586;
+      final metadata = json.decode('''{
+            "197819781978": "John",
+            "197819781979": "CA",
+            "1978197819710": "0x000B",
+            "1978197819711": {
+              "1978": "201value",
+              "197819": "200001",
+              "203": "0x0B0B0A"
+            },
+            "1978197819712": [
+              "301value",
+              "300001",
+              "0x0B0B0A",
+              {"401": "401str", "hello": "hellovalue"}
+            ]}''');
+      final signingKey = KeyUtil.generateSigningKey();
+      final tx1 = (TxBuilder()
+            ..input(
+                transactionId:
+                    '73198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002',
+                index: 1)
+            ..output(
+                address:
+                    'addr_test1qqy3df0763vfmygxjxu94h0kprwwaexe6cx5exjd92f9qfkry2djz2a8a7ry8nv00cudvfunxmtp5sxj9zcrdaq0amtqmflh6v',
+                lovelace: 40000)
+            ..output(
+                address:
+                    'addr_test1qzx9hu8j4ah3auytk0mwcupd69hpc52t0cw39a65ndrah86djs784u92a3m5w475w3w35tyd6v3qumkze80j8a6h5tuqq5xe8y',
+                value: BcValue(coin: 340000, multiAssets: [
+                  BcMultiAsset(
+                      policyId:
+                          '329728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96',
+                      assets: [
+                        BcAsset(name: '0x736174636f696e', value: 4000),
+                        BcAsset(name: '0x446174636f696e', value: 1100),
+                      ]),
+                  BcMultiAsset(
+                      policyId:
+                          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7',
+                      assets: [BcAsset(name: '', value: 9000)]),
+                  BcMultiAsset(
+                      policyId:
+                          '449728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96',
+                      assets: [BcAsset(name: '0x666174636f696e', value: 5000)]),
+                ]),
+                autoAddMinting: true)
+            ..ttl(ttl)
+            ..minFee(fee)
+            ..metadata(BcMetadata.fromJson(metadata))
+            ..plutusV1Script(
+                BcPlutusScriptV1.parse(cborHex: '4d01000033222220051200120011'))
+            ..plutusV1Script(
+                BcPlutusScriptV1.parse(cborHex: '4d01000033222220051200120011'))
+            ..nativeScript(
+                BcScriptPubkey.fromKey(verifyKey: signingKey.verifyKey)))
+          .build();
+      expect(tx1.body.mint.length, equals(3), reason: 'autoAddMinting: true)');
+      final tx2 = BcTransaction.fromHex(tx1.hex);
+      expect(tx2, equals(tx1));
+      final signTx1 =
+          tx1.sign([account1.basePrivateKey(), account2.basePrivateKey()]);
+      final signTx2 = BcTransaction.fromHex(signTx1.hex);
+      expect(signTx2, equals(signTx1));
+      expect(signTx1.verify, isTrue);
+      expect(signTx2.verify, isTrue);
+      /*
 
+        Transaction transaction = new Transaction();
+
+        PlutusV1Script plutusScript = PlutusV1Script.builder()
+                .type("PlutusScriptV1")
+                .cborHex("4d01000033222220051200120011")
+                .build();
+        PlutusV1Script plutusScript1 = PlutusV1Script.builder()
+                .type("PlutusScriptV1")
+                .cborHex("4d01000033222220051200120011")
+                .build();
+
+        ScriptPubkey scriptPubkey = ScriptPubkey.createWithNewKey()._1;
+
+        transaction.setAuxiliaryData(AuxiliaryData.builder()
+                .metadata(metadata)
+                .plutusV1Scripts(Arrays.asList(plutusScript, plutusScript1))
+                .nativeScripts(Arrays.asList(scriptPubkey))
+                .build());
+
+        transaction.setBody(txnBody);
+
+        Transaction signTxn = account1.sign(transaction);
+        signTxn = account2.sign(signTxn);
+
+        Transaction deSeTransaction = Transaction.deserialize(HexUtil.decodeHexString(signTxn.serializeToHex()));
+
+        //Asserts
+        assertThat(deSeTransaction.serializeToHex()).isEqualTo(signTxn.serializeToHex());
+        //Sort certain fields and then assert
+        Comparator<Asset> assetComparator = new Comparator<Asset>() {
+            @Override
+            public int compare(Asset o1, Asset o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        };
+
+        Comparator<MultiAsset> multiAssetComparator = new Comparator<MultiAsset>() {
+            @Override
+            public int compare(MultiAsset o1, MultiAsset o2) {
+                return o1.getPolicyId().compareTo(o2.getPolicyId());
+            }
+        };
+        assertThat(deSeTransaction.serializeToHex()).isEqualTo((signTxn.serializeToHex()));
+        deSeTransaction.getBody().getOutputs().forEach(
+                out -> Collections.sort(out.getValue().getMultiAssets(), multiAssetComparator));
+        deSeTransaction.getBody().getOutputs().forEach(
+                out -> out.getValue().getMultiAssets()
+                        .forEach(ma -> Collections.sort(ma.getAssets(), assetComparator))
+        );
+        transaction.getBody().getOutputs().forEach(
+                out -> Collections.sort(out.getValue().getMultiAssets(), multiAssetComparator));
+        transaction.getBody().getOutputs().forEach(
+                out -> out.getValue().getMultiAssets()
+                        .forEach(ma -> Collections.sort(ma.getAssets(), assetComparator))
+        );
+        deSeTransaction.getBody().getMint().forEach(ma -> Collections.sort(ma.getAssets(), assetComparator));
+        transaction.getBody().getMint().forEach(ma -> Collections.sort(ma.getAssets(), assetComparator));
+
+        assertThat(deSeTransaction.getBody().getInputs()).isEqualTo(transaction.getBody().getInputs());
+        assertThat(deSeTransaction.getBody().getOutputs()).isEqualTo(transaction.getBody().getOutputs());
+        assertThat(deSeTransaction.getBody().getFee()).isEqualTo(transaction.getBody().getFee());
+        assertThat(deSeTransaction.getBody().getTtl()).isEqualTo(transaction.getBody().getTtl());
+        assertThat(deSeTransaction.getBody().getValidityStartInterval()).isEqualTo(transaction.getBody().getValidityStartInterval());
+        assertThat(deSeTransaction.getBody().getAuxiliaryDataHash()).isEqualTo(transaction.getBody().getAuxiliaryDataHash());
+        assertThat(deSeTransaction.getAuxiliaryData().getPlutusV1Scripts()).hasSize(2);
+        assertThat(deSeTransaction.getAuxiliaryData().getPlutusV1Scripts()).hasSameElementsAs(transaction.getAuxiliaryData().getPlutusV1Scripts());
+        assertThat(deSeTransaction.getAuxiliaryData().getNativeScripts()).hasSameElementsAs(transaction.getAuxiliaryData().getNativeScripts());
+        assertThat(deSeTransaction.getBody().getMint()).hasSize(3);
+        assertThat(deSeTransaction.getBody().getMint().get(0).getAssets()).isEqualTo(transaction.getBody().getMint().get(0).getAssets());
+        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses()).hasSize(2);
+        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses().get(0).getVkey()).isNotNull();
+        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses().get(0).getSignature()).isNotNull();
+
+        byte[] metadataByte = deSeTransaction.getAuxiliaryData().getMetadata().serialize();
+        byte[] originalMetadataByte = transaction.getAuxiliaryData().getMetadata().serialize();
+        assertThat(metadataByte).isEqualTo(originalMetadataByte);
+
+        //Cross verify after signing the transaction with serialization-lib
+        String signedTxn = fakeSignAndSerializedRemoveWitness(transaction);
+        Transaction signedTxnObj = Transaction.deserialize(HexUtil.decodeHexString(signedTxn));
+        Metadata signedMetadata = signedTxnObj.getAuxiliaryData().getMetadata();
+        assertThat(signedMetadata)
+                .usingDefaultComparator()
+                .usingRecursiveComparison()
+                .isEqualTo(deSeTransaction.getAuxiliaryData().getMetadata());
+
+        //TODO - Check if individual element in the metadata can be compared
+//        //metadata
+//        assertThat(deSeTransaction.getAuxiliaryData().getMetadata())
+//                .usingDefaultComparator()
+//                .usingRecursiveComparison()
+//                .isEqualTo(transaction.getAuxiliaryData().getMetadata());
+        assertThat(deSeTransaction.getAuxiliaryData().getMetadata().serialize()).isEqualTo(transaction.getAuxiliaryData().getMetadata().serialize());
+    }
+      */
+    });
+    test('mint', () {
+      final txId =
+          "73198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002";
+      final recAddress = ShelleyAddress.fromBech32(
+          "addr_test1qqy3df0763vfmygxjxu94h0kprwwaexe6cx5exjd92f9qfkry2djz2a8a7ry8nv00cudvfunxmtp5sxj9zcrdaq0amtqmflh6v");
+      final outputAddress = ShelleyAddress.fromBech32(
+          "addr_test1qzx9hu8j4ah3auytk0mwcupd69hpc52t0cw39a65ndrah86djs784u92a3m5w475w3w35tyd6v3qumkze80j8a6h5tuqq5xe8y");
+      final fee = 367965;
+      final ttl = 26194586;
+      final asset1 = "0x736174636f696e";
+      final tx1 = (TxBuilder()
+            ..input(transactionId: txId, index: 1)
+            ..output(shelleyAddress: recAddress, lovelace: 40000)
+            ..output(
+                shelleyAddress: outputAddress,
+                value: BcValue(coin: 340000, multiAssets: [
+                  BcMultiAsset(
+                      policyId:
+                          '329728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96',
+                      assets: [BcAsset(name: asset1, value: 4000)]),
+                  BcMultiAsset(
+                      policyId:
+                          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7',
+                      assets: [
+                        BcAsset(name: str2hex.encode('Test'), value: 4000)
+                      ]),
+                ]),
+                autoAddMinting: true)
+            ..mint(BcMultiAsset(
+                policyId:
+                    '229728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a26',
+                assets: [BcAsset(name: asset1, value: -5000)]))
+            ..ttl(ttl)
+            ..minFee(fee))
+          .build();
+      expect(tx1.body.mint.length, equals(3), reason: 'autoAddMinting: true)');
+      final tx2 = BcTransaction.fromHex(tx1.hex);
+      expect(tx1, equals(tx2));
+    });
+  });
   group('TxBuilder -', () {
     final fee = 200000;
     final inputAmount = 99200000;
