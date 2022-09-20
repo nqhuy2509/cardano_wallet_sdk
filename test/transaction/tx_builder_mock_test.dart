@@ -63,7 +63,7 @@ void main() {
       expect(balResult.isOk(), isTrue);
       expect(balResult.unwrap(), isTrue);
       expect(tx.body.fee, lessThan(defaultFee));
-    }, skip: "TODO");
+    });
     test('sendAda - 100 ADA - 2 UTxOs', () async {
       Result<BcTransaction, String> result =
           await wallet.sendAda(toAddress: toAddress, lovelace: ada * 100);
@@ -77,7 +77,7 @@ void main() {
       expect(balResult.isOk(), isTrue);
       expect(balResult.unwrap(), isTrue);
       expect(tx.body.fee, lessThan(2000000));
-    }, skip: "TODO");
+    });
     test('sendAda - 200 ADA - insufficient balance', () async {
       Result<BcTransaction, String> result =
           await wallet.sendAda(toAddress: toAddress, lovelace: ada * 200);

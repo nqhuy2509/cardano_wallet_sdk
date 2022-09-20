@@ -66,7 +66,7 @@ void main() {
         var wallet = result.unwrap();
         logger.info("${wallet.walletName}: ${wallet.balance}");
       }
-    }, skip: "TODO");
+    });
     test('Update existing wallet', () async {
       final walletBuilder = WalletBuilder()
         ..network = Networks.testnet
@@ -82,7 +82,7 @@ void main() {
             logger.info("old:$oldBalance ADA, new: ${wallet.balance} ADA"),
         err: (message) => logger.info("Error: $message"),
       );
-    }, skip: "TODO");
+    });
     test('Create a new 24 word mnemonic', () {
       List<String> mnemonic =
           generateNewMnemonic(loadWordsFunction: loadEnglishMnemonicWords);
