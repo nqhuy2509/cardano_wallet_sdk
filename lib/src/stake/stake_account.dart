@@ -67,7 +67,6 @@ class StakeAccount {
   // })  : this.assetId = '$policyId$assetName',
   //       this.name = hex2str.encode(assetName), //if assetName is not hex, this will usualy fail
   //       this.fingerprint = fingerprint ?? calculateFingerlogger.i(policyId: policyId, assetNameHex: assetName);
-
 }
 
 class StakeReward {

@@ -4,42 +4,37 @@ version: 0.1.0-alpha.12
 homepage: https://github.com/reaster/cardano_wallet_sdk
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <3.4.0"
 
 dependencies:
+  analyzer: ^4.7.0
   blockfrost: ^1.0.0-dev.8
-  # bip32_ed25519: ^0.2.1
-  bip32_ed25519: 0.4.0
-  pinenacl: 0.4.0
+  bip32_ed25519: 0.5.0
+  pinenacl: 0.5.1
   crypto: ^3.0.2
   base_x: ^2.0.0
-  # pinenacl: ^0.3.5
-  # bip39: ^1.0.6
-  cbor: ^5.0.1
-  dio: ^4.0.3
-  convert: ^3.0.0
-  collection: ^1.15.0
-  intl: ^0.17.0
-  typed_data: ^1.3.0
   built_collection: ^5.1.0
   built_value: ^8.1.0
+  cbor: ^5.0.1
+  collection: ^1.15.0
+  convert: ^3.0.0
+  dio: ^4.0.3
   hex: ^0.2.0
-  quiver: ^3.0.1+1
-  oxidized: ^5.1.0 #TODO swap oxidized Result for dartz Either?
-  # logger: ^1.1.0
-  logging: ^1.0.2
-  freezed_annotation: ^2.0.3
+  intl: ^0.17.0
   json_annotation: ^4.5.0
+  logging: ^1.0.2
+  oxidized: ^5.1.0
+  quiver: ^3.0.1+1
+  typed_data: ^1.3.0
 
 dev_dependencies:
-  test: any
-  mockito: ^5.0.10
   build_runner: ^2.1.5
-  lints: ^2.0.0
-  http: ^0.13.4
   flutter_lints: ^2.0.0
-  freezed: ^2.0.3+1
+  http: ^0.13.4
   json_serializable:
+  lints: ^2.0.0
+  mockito: ^5.3.1
+  test: any
 # dependency_overrides:
 #   pinenacl:
 #     path: ../pinenacl-dart
