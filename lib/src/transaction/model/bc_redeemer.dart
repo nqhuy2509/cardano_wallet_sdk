@@ -3,6 +3,7 @@
 
 import 'package:bip32_ed25519/bip32_ed25519.dart';
 import 'package:cbor/cbor.dart';
+import 'package:hex/hex.dart';
 import './bc_abstract.dart';
 import './bc_plutus_data.dart';
 
@@ -58,6 +59,9 @@ class BcRedeemer extends BcAbstractCbor {
     }
   }
 
+  factory BcRedeemer.fromHex(String hex) =>
+      BcRedeemer.fromCbor(cbor.decode(HEX.decode(hex)));
+
   @override
   CborValue get cborValue => CborList([
         CborSmallInt(tag.value),
@@ -84,7 +88,7 @@ class BcExUnits {
         value[0] is CborInt &&
         value[1] is CborInt) {
       return BcExUnits(
-          (value[0] as CborInt).toBigInt(), (value[0] as CborInt).toBigInt());
+          (value[0] as CborInt).toBigInt(), (value[1] as CborInt).toBigInt());
     } else {
       throw CborError(
           "BcExUnits.fromCbor expecting CborArray of two CborInt's, not $value");
