@@ -213,7 +213,7 @@ class HdAudit implements HdAddressGenerator, HdLegacyReceiver {
 
   @override
   String toString() {
-    const roleXvkCoder = Bech32Coder(hrp: 'role_xvk');
+    const roleXvkCoder = Bech32Encoder(hrp: 'role_xvk');
     return "external ${roleXvkCoder.encode(derivation.root)}, internal: ${roleXvkCoder.encode(derivationInternal.root)}, stake: ${addrXvkCoder.encode(publicStakeKey)}";
   }
 }

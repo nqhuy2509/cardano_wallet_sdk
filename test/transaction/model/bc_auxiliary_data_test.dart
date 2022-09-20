@@ -12,7 +12,7 @@ import 'package:hex/hex.dart';
 // import 'dart:typed_data';
 
 void main() {
-  // Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  Logger.root.level = Level.WARNING; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
@@ -36,9 +36,9 @@ void main() {
           cborHex: '4e4d01000033222220051200120011',
         )
       ]);
-      print("expected hex: d90103a102814e4d01000033222220051200120011");
+      logger.info("expected hex: d90103a102814e4d01000033222220051200120011");
       final hashHex0 = auxiliaryData.hex;
-      print("  actual hex: $hashHex0");
+      logger.info("  actual hex: $hashHex0");
       final hashHex = HEX.encode(auxiliaryData.hash);
       expect(
           hashHex,

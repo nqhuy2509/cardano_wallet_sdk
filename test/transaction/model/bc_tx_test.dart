@@ -395,7 +395,7 @@ void main() {
         network: Networks.testnet,
       ).account();
       logger.info(
-          "acct_xsk: ${Bech32Coder(hrp: 'xprv').encode(acct1.basePrivateKey())}");
+          "acct_xsk: ${Bech32Encoder(hrp: 'xprv').encode(acct1.basePrivateKey())}");
       final acct2 = HdMaster.mnemonic(
         'mixture peasant wood unhappy usage hero great elder emotion picnic talent fantasy program clean patch wheel drip disorder bullet cushion bulk infant balance address'
             .split(' '),

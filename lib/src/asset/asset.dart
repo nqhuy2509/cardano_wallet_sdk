@@ -125,16 +125,12 @@ String calculateFingerprint(
     {required String policyId,
     required String assetNameHex,
     String hrp = 'asset'}) {
-  //final assetNameHex = str2hex.encode(assetName);
   final assetId = '$policyId$assetNameHex';
-  //logger.info("assetId: $assetId");
   final assetIdBytes = HEX.decode(assetId);
-  //logger.info(b2s(assetIdBytes, prefix: 'assetIdBytes'));
   final List<int> hashBytes = blake2bHash160(assetIdBytes);
-  //logger.info(b2s(hashBytes, prefix: 'hashBytes'));
-  final List<int> fiveBitArray = convertBits(hashBytes, 8, 5, false);
-  //logger.info(b2s(fiveBitArray, prefix: 'fiveBitArray'));
-  return bech32.encode(Bech32(hrp, fiveBitArray));
+  return hrp == 'asset'
+      ? _bech32Asset.encode(hashBytes)
+      : Bech32Encoder(hrp: hrp).encode(hashBytes);
 }
 
 List<int> convertBits(List<int> data, int fromWidth, int toWidth, bool pad) {
@@ -167,6 +163,7 @@ List<int> convertBits(List<int> data, int fromWidth, int toWidth, bool pad) {
   return ret;
 }
 
+const _bech32Asset = Bech32Encoder(hrp: 'asset');
 //
 // An AssetId uniquly identifies a native token by combining the policyId with the token name.
 // Some properties name this type 'unit'.

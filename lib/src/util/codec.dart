@@ -13,16 +13,16 @@ import '../address/shelley_address.dart';
 /// Various encoders, decoders and type converters.
 ///
 
-const addrVkCoder = Bech32Coder(hrp: 'addr_vk');
-const addrXvkCoder = Bech32Coder(hrp: 'addr_xvk');
-const rootXskCoder = Bech32Coder(hrp: 'root_xsk');
-const acctXskCoder = Bech32Coder(hrp: 'acct_xsk');
-const acctXvkCoder = Bech32Coder(hrp: 'acct_xvk');
-const stakeCoder = Bech32Coder(hrp: 'stake');
-const stakeVkCoder = Bech32Coder(hrp: 'stake_vk');
-const stakeXskCoder = Bech32Coder(hrp: 'stake_xsk');
-const stakeXvkCoder = Bech32Coder(hrp: 'stake_xvk');
-const scriptCoder = Bech32Coder(hrp: 'script');
+const addrVkCoder = Bech32Encoder(hrp: 'addr_vk');
+const addrXvkCoder = Bech32Encoder(hrp: 'addr_xvk');
+const rootXskCoder = Bech32Encoder(hrp: 'root_xsk');
+const acctXskCoder = Bech32Encoder(hrp: 'acct_xsk');
+const acctXvkCoder = Bech32Encoder(hrp: 'acct_xvk');
+const stakeCoder = Bech32Encoder(hrp: 'stake');
+const stakeVkCoder = Bech32Encoder(hrp: 'stake_vk');
+const stakeXskCoder = Bech32Encoder(hrp: 'stake_xsk');
+const stakeXvkCoder = Bech32Encoder(hrp: 'stake_xvk');
+const scriptCoder = Bech32Encoder(hrp: 'script');
 
 /// base58 codec
 BaseXCodec base58Codec =

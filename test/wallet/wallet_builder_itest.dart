@@ -81,7 +81,7 @@ void main() {
   });
 }
 
-final rootXskCoder = Bech32Coder(hrp: 'root_xsk');
+final rootXskCoder = Bech32Encoder(hrp: 'root_xsk');
 
 // String generateRootXskBip32() {
 //   final rootSigningKey =

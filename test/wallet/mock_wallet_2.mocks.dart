@@ -54,17 +54,17 @@ class _FakeCardanoAccountsApi_2 extends _i1.Fake
 class _FakeCardanoAddressesApi_3 extends _i1.Fake
     implements _i5.CardanoAddressesApi {}
 
-class _FakeCardanoAssetsApi_4 extends _i1.Fake implements _i6.CardanoAssetsApi {
-}
+class _FakeCardanoAssetsApi_4 extends _i1.Fake
+    implements _i6.CardanoAssetsApi {}
 
-class _FakeCardanoBlocksApi_5 extends _i1.Fake implements _i7.CardanoBlocksApi {
-}
+class _FakeCardanoBlocksApi_5 extends _i1.Fake
+    implements _i7.CardanoBlocksApi {}
 
-class _FakeCardanoEpochsApi_6 extends _i1.Fake implements _i8.CardanoEpochsApi {
-}
+class _FakeCardanoEpochsApi_6 extends _i1.Fake
+    implements _i8.CardanoEpochsApi {}
 
-class _FakeCardanoLedgerApi_7 extends _i1.Fake implements _i9.CardanoLedgerApi {
-}
+class _FakeCardanoLedgerApi_7 extends _i1.Fake
+    implements _i9.CardanoLedgerApi {}
 
 class _FakeCardanoMetadataApi_8 extends _i1.Fake
     implements _i10.CardanoMetadataApi {}

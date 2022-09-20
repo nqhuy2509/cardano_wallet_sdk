@@ -442,7 +442,7 @@ void main() {
     test('enterpriseFromBech32VerifyKey', () {
       final verifycKey = Bip32VerifyKey.decode(
           'addr_xvk1r30n0pv6d40kzzl4e6xje2y7c446gw2x9sgnms3vv62tx264tf5n9lxnuxqc5xpqlg30dtlq0tf0fav4kafsge6u24x296vg85l399cx2uv4k',
-          coder: Bech32Coder(hrp: 'addr_xvk'));
+          coder: Bech32Encoder(hrp: 'addr_xvk'));
       var addr = ShelleyAddress.enterpriseAddress(
           spend: verifycKey, network: Networks.testnet);
       expect(

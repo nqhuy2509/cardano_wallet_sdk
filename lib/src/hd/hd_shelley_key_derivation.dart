@@ -76,5 +76,5 @@ class HdKeyDerivation {
     return derivation.pathToKey(path.toString());
   }
 
-  //static const codec = Bech32Coder(hrp: 'root_sk');
+  //static const codec = Bech32Encoder(hrp: 'root_sk');
 }

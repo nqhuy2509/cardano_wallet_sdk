@@ -394,10 +394,24 @@ class ShelleyAddress extends AbstractAddress {
       );
 
   factory ShelleyAddress.fromBech32(String address) {
-    final decoded = bech32.decode(address, 256);
-    final hrp = decoded.hrp;
-    final bytes = Bech32Coder(hrp: hrp).decode(address);
-    return ShelleyAddress(bytes, hrp: hrp);
+    final hrp = _hrpPrefix(address);
+    if (hrp.isEmpty) {
+      throw InvalidAddressError(
+          'not a valid Bech32 address - no prefix: $address');
+    }
+    switch (hrp) {
+      case defaultAddrHrp:
+        return ShelleyAddress(mainNetEncoder.decode(address), hrp: hrp);
+      case defaultAddrHrp + testnetHrpSuffix:
+        return ShelleyAddress(testNetEncoder.decode(address), hrp: hrp);
+      case defaultRewardHrp:
+        return ShelleyAddress(mainNetRewardEncoder.decode(address), hrp: hrp);
+      case defaultRewardHrp + testnetHrpSuffix:
+        return ShelleyAddress(testNetRewardEncoder.decode(address), hrp: hrp);
+      default:
+        return ShelleyAddress(Bech32Encoder(hrp: hrp).decode(address),
+            hrp: hrp);
+    }
   }
 
   String toBech32({String? prefix}) {
@@ -412,7 +426,7 @@ class ShelleyAddress extends AbstractAddress {
       case defaultRewardHrp + testnetHrpSuffix:
         return testNetRewardEncoder.encode(bytes);
     }
-    return Bech32Coder(hrp: prefix).encode(bytes);
+    return Bech32Encoder(hrp: prefix).encode(bytes);
   }
 
   @override
@@ -472,21 +486,30 @@ class ShelleyAddress extends AbstractAddress {
     return true;
   }
 
+  static String _hrpPrefix(String addr) {
+    final s = addr.trim();
+    final i = s.indexOf('1');
+    return s.substring(0, i > 0 ? i : 0);
+  }
+
+  ///if where using the testnet, make sure the hrp ends with '_test'
   static String _computeHrp(Networks id, String prefix) => id ==
           Networks.testnet
       ? (prefix.endsWith(testnetHrpSuffix) ? prefix : prefix + testnetHrpSuffix)
       : prefix;
 
+  /// if this is a Bip32 extended key, return the verify key with the chain bytes removed.
   static VerifyKey _stripChain(VerifyKey vk) =>
       vk is Bip32VerifyKey ? VerifyKey(Uint8List.fromList(vk.prefix)) : vk;
 
-  static const Bech32Coder mainNetEncoder = Bech32Coder(hrp: defaultAddrHrp);
-  static const Bech32Coder testNetEncoder =
-      Bech32Coder(hrp: defaultAddrHrp + testnetHrpSuffix);
-  static const Bech32Coder mainNetRewardEncoder =
-      Bech32Coder(hrp: defaultRewardHrp);
-  static const Bech32Coder testNetRewardEncoder =
-      Bech32Coder(hrp: defaultRewardHrp + testnetHrpSuffix);
+  static const Bech32Encoder mainNetEncoder =
+      Bech32Encoder(hrp: defaultAddrHrp);
+  static const Bech32Encoder testNetEncoder =
+      Bech32Encoder(hrp: defaultAddrHrp + testnetHrpSuffix);
+  static const Bech32Encoder mainNetRewardEncoder =
+      Bech32Encoder(hrp: defaultRewardHrp);
+  static const Bech32Encoder testNetRewardEncoder =
+      Bech32Encoder(hrp: defaultRewardHrp + testnetHrpSuffix);
 }
 
 //enum AddressType { base, pointer, enterprise, byron, reward }
@@ -539,7 +562,8 @@ const String testnetHrpSuffix = '_test';
 /// throws InvalidAddressError if invalid input
 ///
 AbstractAddress parseAddress(String address) {
-  if (address.startsWith("addr") || address.startsWith("stake")) {
+  if (address.startsWith(defaultAddrHrp) ||
+      address.startsWith(defaultRewardHrp)) {
     return ShelleyAddress.fromBech32(address); //Shelley address
   } else {
     return ByronAddress.fromBase58(address); //Try for byron address
