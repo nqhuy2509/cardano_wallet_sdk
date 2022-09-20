@@ -17,22 +17,32 @@ extension BcTransactionLogic on BcTransaction {
   /// If fakeSignature is true, just return a dummy signature for cost calculations.
   /// TODO use signEd25519Extended function?
   ///
-  BcVkeyWitness signedWitness(Bip32SigningKey signingKey,
+  BcVkeyWitness signedWitness(SigningKey signingKey,
       {bool fakeSignature = false}) {
     final bodyData = cbor.encode(body.toCborMap());
     List<int> hash = blake2bHash256(bodyData);
-    final signedMessage =
-        fakeSignature ? _fakeSign(hash) : signingKey.sign(hash);
-    final witness = BcVkeyWitness(
-        vkey: signingKey.verifyKey.rawKey, signature: signedMessage.signature);
-    return witness;
+    if (signingKey is Bip32SigningKey) {
+      final signedMessage =
+          fakeSignature ? _fakeSign(hash) : signingKey.sign(hash);
+      final witness = BcVkeyWitness(
+          vkey: signingKey.verifyKey.rawKey,
+          signature: signedMessage.signature);
+      return witness;
+    } else {
+      final signedMessage = fakeSignature
+          ? _fakeSign(hash)
+          : signingKey.sign(Uint8List.fromList(hash));
+      final witness = BcVkeyWitness(
+          vkey: signingKey.verifyKey, signature: signedMessage.signature);
+      return witness;
+    }
   }
 
   ///
   /// Give a list of signing keys, generate new transaction containing a witness set.
   /// If fakeSignature is true, generate dummy signatures for cost calculations.
   ///
-  BcTransaction sign(List<Bip32SigningKey> signingKeys,
+  BcTransaction sign(List<SigningKey> signingKeys,
       {bool fakeSignature = false}) {
     List<BcVkeyWitness> witnesses = signingKeys
         .map((k) => signedWitness(k, fakeSignature: fakeSignature))

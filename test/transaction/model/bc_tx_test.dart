@@ -26,13 +26,42 @@ void main() {
   group('witness set -', () {
     test('serialize', () {
       BcTransactionWitnessSet ws1 = BcTransactionWitnessSet(
-        nativeScripts: [],
-        bootstrapWitnesses: [],
+        nativeScripts: [
+          BcScriptPubkey(
+              keyHash:
+                  '2f3d4cf10d0471a1db9f2d2907de867968c27bca6272f062cd1c2413'),
+          BcScriptPubkey(
+              keyHash:
+                  'f856c0c5839bab22673747d53f1ae9eed84afafb085f086e8e988614'),
+        ],
+        bootstrapWitnesses: [
+          BcBootstrapWitness(
+            publicKey: Uint8List.fromList([1, 2, 3]),
+            signature: Uint8List.fromList([4, 5, 6]),
+            chainCode: Uint8List.fromList([7, 8, 9]),
+            attributes: Uint8List.fromList([10, 11, 12]),
+          )
+        ],
         plutusScriptsV1: [
           BcPlutusScriptV1.parse(cborHex: '4e3d01000033222220051200120011')
         ],
-        plutusDataList: [],
-        redeemers: [],
+        plutusDataList: [
+          BcConstrPlutusData(
+              alternative: 0,
+              list: BcListPlutusData([
+                BcBytesPlutusData(
+                    Uint8List.fromList(utf8.encode('Hello World!')))
+              ]))
+        ],
+        redeemers: [
+          BcRedeemer(
+            tag: BcRedeemerTag.spend,
+            index: BigInt.from(99),
+            data: BcPlutusData.fromCbor(CborMap(
+                {CborBigInt(BigInt.from(42)): CborBytes('hello'.codeUnits)})),
+            exUnits: BcExUnits(BigInt.from(1024), BigInt.from(6)),
+          )
+        ],
         plutusScriptsV2: [
           BcPlutusScriptV2.parse(cborHex: '4e4d01000033222220051200120011'),
           BcPlutusScriptV2.parse(cborHex: '4e5def000033222220051200120011'),
@@ -52,8 +81,6 @@ void main() {
   });
   group('serialize -', () {
     test('plutus and native scripts', () {
-      final account1 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
-      final account2 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
       final fee = 367965;
       final ttl = 26194586;
       final metadata = json.decode('''{
@@ -115,110 +142,17 @@ void main() {
       expect(tx1.body.mint.length, equals(3), reason: 'autoAddMinting: true)');
       final tx2 = BcTransaction.fromHex(tx1.hex);
       expect(tx2, equals(tx1));
+      //sign
+      final account1 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
+      final account2 = HdMaster.mnemonic(HdMaster.generateMnemonic()).account();
       final signTx1 =
           tx1.sign([account1.basePrivateKey(), account2.basePrivateKey()]);
+      expect(signTx1.verify, isTrue);
       final signTx2 = BcTransaction.fromHex(signTx1.hex);
       expect(signTx2, equals(signTx1));
-      expect(signTx1.verify, isTrue);
       expect(signTx2.verify, isTrue);
-      /*
-
-        Transaction transaction = new Transaction();
-
-        PlutusV1Script plutusScript = PlutusV1Script.builder()
-                .type("PlutusScriptV1")
-                .cborHex("4d01000033222220051200120011")
-                .build();
-        PlutusV1Script plutusScript1 = PlutusV1Script.builder()
-                .type("PlutusScriptV1")
-                .cborHex("4d01000033222220051200120011")
-                .build();
-
-        ScriptPubkey scriptPubkey = ScriptPubkey.createWithNewKey()._1;
-
-        transaction.setAuxiliaryData(AuxiliaryData.builder()
-                .metadata(metadata)
-                .plutusV1Scripts(Arrays.asList(plutusScript, plutusScript1))
-                .nativeScripts(Arrays.asList(scriptPubkey))
-                .build());
-
-        transaction.setBody(txnBody);
-
-        Transaction signTxn = account1.sign(transaction);
-        signTxn = account2.sign(signTxn);
-
-        Transaction deSeTransaction = Transaction.deserialize(HexUtil.decodeHexString(signTxn.serializeToHex()));
-
-        //Asserts
-        assertThat(deSeTransaction.serializeToHex()).isEqualTo(signTxn.serializeToHex());
-        //Sort certain fields and then assert
-        Comparator<Asset> assetComparator = new Comparator<Asset>() {
-            @Override
-            public int compare(Asset o1, Asset o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        };
-
-        Comparator<MultiAsset> multiAssetComparator = new Comparator<MultiAsset>() {
-            @Override
-            public int compare(MultiAsset o1, MultiAsset o2) {
-                return o1.getPolicyId().compareTo(o2.getPolicyId());
-            }
-        };
-        assertThat(deSeTransaction.serializeToHex()).isEqualTo((signTxn.serializeToHex()));
-        deSeTransaction.getBody().getOutputs().forEach(
-                out -> Collections.sort(out.getValue().getMultiAssets(), multiAssetComparator));
-        deSeTransaction.getBody().getOutputs().forEach(
-                out -> out.getValue().getMultiAssets()
-                        .forEach(ma -> Collections.sort(ma.getAssets(), assetComparator))
-        );
-        transaction.getBody().getOutputs().forEach(
-                out -> Collections.sort(out.getValue().getMultiAssets(), multiAssetComparator));
-        transaction.getBody().getOutputs().forEach(
-                out -> out.getValue().getMultiAssets()
-                        .forEach(ma -> Collections.sort(ma.getAssets(), assetComparator))
-        );
-        deSeTransaction.getBody().getMint().forEach(ma -> Collections.sort(ma.getAssets(), assetComparator));
-        transaction.getBody().getMint().forEach(ma -> Collections.sort(ma.getAssets(), assetComparator));
-
-        assertThat(deSeTransaction.getBody().getInputs()).isEqualTo(transaction.getBody().getInputs());
-        assertThat(deSeTransaction.getBody().getOutputs()).isEqualTo(transaction.getBody().getOutputs());
-        assertThat(deSeTransaction.getBody().getFee()).isEqualTo(transaction.getBody().getFee());
-        assertThat(deSeTransaction.getBody().getTtl()).isEqualTo(transaction.getBody().getTtl());
-        assertThat(deSeTransaction.getBody().getValidityStartInterval()).isEqualTo(transaction.getBody().getValidityStartInterval());
-        assertThat(deSeTransaction.getBody().getAuxiliaryDataHash()).isEqualTo(transaction.getBody().getAuxiliaryDataHash());
-        assertThat(deSeTransaction.getAuxiliaryData().getPlutusV1Scripts()).hasSize(2);
-        assertThat(deSeTransaction.getAuxiliaryData().getPlutusV1Scripts()).hasSameElementsAs(transaction.getAuxiliaryData().getPlutusV1Scripts());
-        assertThat(deSeTransaction.getAuxiliaryData().getNativeScripts()).hasSameElementsAs(transaction.getAuxiliaryData().getNativeScripts());
-        assertThat(deSeTransaction.getBody().getMint()).hasSize(3);
-        assertThat(deSeTransaction.getBody().getMint().get(0).getAssets()).isEqualTo(transaction.getBody().getMint().get(0).getAssets());
-        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses()).hasSize(2);
-        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses().get(0).getVkey()).isNotNull();
-        assertThat(deSeTransaction.getWitnessSet().getVkeyWitnesses().get(0).getSignature()).isNotNull();
-
-        byte[] metadataByte = deSeTransaction.getAuxiliaryData().getMetadata().serialize();
-        byte[] originalMetadataByte = transaction.getAuxiliaryData().getMetadata().serialize();
-        assertThat(metadataByte).isEqualTo(originalMetadataByte);
-
-        //Cross verify after signing the transaction with serialization-lib
-        String signedTxn = fakeSignAndSerializedRemoveWitness(transaction);
-        Transaction signedTxnObj = Transaction.deserialize(HexUtil.decodeHexString(signedTxn));
-        Metadata signedMetadata = signedTxnObj.getAuxiliaryData().getMetadata();
-        assertThat(signedMetadata)
-                .usingDefaultComparator()
-                .usingRecursiveComparison()
-                .isEqualTo(deSeTransaction.getAuxiliaryData().getMetadata());
-
-        //TODO - Check if individual element in the metadata can be compared
-//        //metadata
-//        assertThat(deSeTransaction.getAuxiliaryData().getMetadata())
-//                .usingDefaultComparator()
-//                .usingRecursiveComparison()
-//                .isEqualTo(transaction.getAuxiliaryData().getMetadata());
-        assertThat(deSeTransaction.getAuxiliaryData().getMetadata().serialize()).isEqualTo(transaction.getAuxiliaryData().getMetadata().serialize());
-    }
-      */
     });
+
     test('mint', () {
       final txId =
           "73198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002";
@@ -294,20 +228,6 @@ void main() {
       expect(tx.hex, equals(expectedHex));
       expect(tx.body.hashHex, equals(expectedHash));
     });
-    // test('alonzo - BcAuxiliaryData', () {
-    //   final builder = TxBuilder()
-    //     ..input(transactionId: txId, index: 0)
-    //     ..output(address: to, lovelace: inputAmount - fee)
-    //     ..ttl(66000000)
-    //     ..minFee(fee)
-    //     ..auxiliaryData(BcAuxiliaryData(
-    //         metadata: BcMetadata.fromCbor(
-    //             map: CborMap(
-    //                 {CborInt(BigInt.from(1924)): CborString('hello world')}))));
-    //   final BcTransaction tx = builder.build();
-    //   expect(tx.hex, equals(expectedHex));
-    //   expect(tx.body.hashHex, equals(expectedHash));
-    // });
   });
 
   group('Blockchain CBOR model -', () {
@@ -321,6 +241,25 @@ void main() {
       //print(const CborJsonEncoder().convert(val1));
       final input2 = BcTransactionInput.fromCbor(list: val1 as CborList);
       expect(input2, equals(input1));
+    });
+
+    test('sign - SigningKey -', () {
+      final txnHex =
+          '83a4008282582073198b7ad003862b9798106b88fbccfca464b1a38afb34958275c4a7d7d8d002018258208e03a93578dc0acd523a4dd861793068a06a68b8a6c7358d0c965d2864067b68000184825839000916a5fed4589d910691b85addf608dceee4d9d60d4c9a4d2a925026c3229b212ba7ef8643cd8f7e38d6279336d61a40d228b036f40feed61a004c4b40825839008c5bf0f2af6f1ef08bb3f6ec702dd16e1c514b7e1d12f7549b47db9f4d943c7af0aaec774757d4745d1a2c8dd3220e6ec2c9df23f757a2f8821a3aa51029a2581c329728f73683fe04364631c27a7912538c116d802416ca1eaf2d7a96a147736174636f696e190fa0581c6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7a14019232882583900c93b6cac143fe60f8914f44a899f5329433ccec3d53721ef350a0fd8cb873402c73ad8f239f76fb559bb4e3bcff22b310b01eadd3ce205e71a007a1200825839001c1ffaf141ebbb8e3a7072bb15f50f938b994c82de2d175f358fc942441f00edfe1b8d6a84f0d19c25a9c8829442160c0b5c758094c423441a3b1b1aa3021a000b3aba031a018fb29aa0f6';
+      final sk =
+          'ede3104b2f4ff32daa3b620a9a272cd962cf504da44cf1cf0280aff43b65f807';
+      final secretKey = SigningKey.fromSeed(Uint8List.fromList(HEX.decode(sk)));
+      final tx = BcTransaction.fromHex(txnHex);
+      final signedTx = tx.sign([secretKey]);
+      final witness = signedTx.witnessSet!.vkeyWitnesses[0];
+      expect(
+          witness.vkey,
+          equals(HEX.decode(
+              '60209269377f220cdecdc6d5ad42d9b04e58ce74b349efb396ee46adaeb956f3')));
+      expect(
+          witness.signature,
+          equals(HEX.decode(
+              'cd9f8e70a09f24328ee6c14053a38a6a654d31e9e58a9c6c44848e4592265237ce3604eda0cb1812028c3e6b04c66ccc64a1d2685d98e0567477cbc33a4c2f0f')));
     });
 
     test('serializeTx', () {
