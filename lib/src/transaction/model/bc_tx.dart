@@ -366,41 +366,41 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
   });
 
   factory BcTransactionWitnessSet.fromCbor({required CborMap map}) {
-    final List<BcVkeyWitness> vkeyWitnesses = map[_verificationKey] == null
+    final List<BcVkeyWitness> vkeyWitnesses = map[_key0] == null
         ? []
-        : (map[_verificationKey] as List)
+        : (map[_key0] as List)
             .map((list) => BcVkeyWitness.fromCbor(list: list))
             .toList();
-    final List<BcNativeScript> nativeScripts = map[_nativeScript] == null
+    final List<BcNativeScript> nativeScripts = map[_key1] == null
         ? []
-        : (map[_nativeScript] as List)
+        : (map[_key1] as List)
             .map((list) => BcNativeScript.fromCbor(list: list))
             .toList();
-    final List<BcBootstrapWitness> bootstrapWitnesses = map[_bootstrap] == null
+    final List<BcBootstrapWitness> bootstrapWitnesses = map[_key2] == null
         ? []
-        : (map[_bootstrap] as List)
+        : (map[_key2] as List)
             .map((list) => BcBootstrapWitness.fromCbor(list: list))
             .toList();
-    final List<BcPlutusScriptV1> plutusScriptsV1 = map[_plutusScriptV1] == null
+    final List<BcPlutusScriptV1> plutusScriptsV1 = map[_key3] == null
         ? []
-        : (map[_plutusScriptV1] as List)
+        : (map[_key3] as List)
             .map((bytes) =>
                 BcPlutusScript.fromCbor(bytes, type: BcScriptType.plutusV1)
                     as BcPlutusScriptV1)
             .toList();
-    final List<BcPlutusData> plutusDataList = map[_plutusData] == null
+    final List<BcPlutusData> plutusDataList = map[_key4] == null
         ? []
-        : (map[_plutusData] as List)
+        : (map[_key4] as List)
             .map((list) => BcPlutusData.fromCbor(list))
             .toList();
-    final List<BcRedeemer> redeemers = map[_redeemer] == null
+    final List<BcRedeemer> redeemers = map[_key5] == null
         ? []
-        : (map[_redeemer] as List)
+        : (map[_key5] as List)
             .map((list) => BcRedeemer.fromCbor(list))
             .toList();
-    final List<BcPlutusScriptV2> plutusScriptsV2 = map[_plutusScriptV2] == null
+    final List<BcPlutusScriptV2> plutusScriptsV2 = map[_key6] == null
         ? []
-        : (map[_plutusScriptV2] as List)
+        : (map[_key6] as List)
             .map((bytes) =>
                 BcPlutusScript.fromCbor(bytes, type: BcScriptType.plutusV2)
                     as BcPlutusScriptV2)
@@ -429,22 +429,25 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
     return CborMap({
       //0:verificationKey key
       if (vkeyWitnesses.isNotEmpty)
-        _verificationKey: CborList.of(vkeyWitnesses.map((w) => w.toCborList())),
+        _key0: CborList.of(vkeyWitnesses.map((w) => w.toCborList())),
       //1:nativeScript key
       if (nativeScripts.isNotEmpty)
-        _nativeScript: CborList.of(nativeScripts.map((s) => s.toCborList())),
+        _key1: CborList.of(nativeScripts.map((s) => s.toCborList())),
       //2:bootstrap key
       if (bootstrapWitnesses.isNotEmpty)
-        _bootstrap: CborList.of(bootstrapWitnesses.map((s) => s.toCborList())),
+        _key2: CborList.of(bootstrapWitnesses.map((s) => s.toCborList())),
       //3:plutusScriptsV1 key
       if (plutusScriptsV1.isNotEmpty)
-        _plutusScriptV1: CborList.of(plutusScriptsV1.map((s) => s.cborBytes)),
+        _key3: CborList.of(plutusScriptsV1.map((s) => s.cborBytes)),
+      //4: plutusData key
+      if (plutusDataList.isNotEmpty)
+        _key4: CborList.of(plutusDataList.map((s) => s.cborValue)),
       //5:redeemer key
       if (redeemers.isNotEmpty)
-        _redeemer: CborList.of(redeemers.map((s) => s.cborValue)),
+        _key5: CborList.of(redeemers.map((s) => s.cborValue)),
       //6:plutusScriptsV2 key
       if (plutusScriptsV2.isNotEmpty)
-        _plutusScriptV2: CborList.of(plutusScriptsV2.map((s) => s.cborBytes)),
+        _key6: CborList.of(plutusScriptsV2.map((s) => s.cborBytes)),
     });
   }
 
@@ -463,17 +466,13 @@ class BcTransactionWitnessSet extends BcAbstractCbor {
   String toString() =>
       'BcTransactionWitnessSet(vkeyWitnesses: $vkeyWitnesses, nativeScripts: $nativeScripts, bootstrapWitnesses: $bootstrapWitnesses, $plutusScriptsV1, plutusDataList: $plutusDataList, redeemers: $redeemers, plutusScriptsV2: $plutusScriptsV2)';
 
-  static final _verificationKey =
-      CborSmallInt(BcWitnessSetType.verificationKey.value);
-  static final _nativeScript =
-      CborSmallInt(BcWitnessSetType.nativeScript.value);
-  static final _bootstrap = CborSmallInt(BcWitnessSetType.bootstrap.value);
-  static final _plutusScriptV1 =
-      CborSmallInt(BcWitnessSetType.plutusScriptV1.value);
-  static final _plutusData = CborSmallInt(BcWitnessSetType.plutusData.value);
-  static final _redeemer = CborSmallInt(BcWitnessSetType.redeemer.value);
-  static final _plutusScriptV2 =
-      CborSmallInt(BcWitnessSetType.plutusScriptV2.value);
+  static final _key0 = CborSmallInt(BcWitnessSetType.verificationKey.value);
+  static final _key1 = CborSmallInt(BcWitnessSetType.nativeScript.value);
+  static final _key2 = CborSmallInt(BcWitnessSetType.bootstrap.value);
+  static final _key3 = CborSmallInt(BcWitnessSetType.plutusScriptV1.value);
+  static final _key4 = CborSmallInt(BcWitnessSetType.plutusData.value);
+  static final _key5 = CborSmallInt(BcWitnessSetType.redeemer.value);
+  static final _key6 = CborSmallInt(BcWitnessSetType.plutusScriptV2.value);
 }
 
 class BcBootstrapWitness extends BcAbstractCbor {
@@ -501,11 +500,15 @@ class BcBootstrapWitness extends BcAbstractCbor {
         CborBytes(publicKey),
         CborBytes(signature),
         CborBytes(chainCode),
-        CborBytes(chainCode),
+        CborBytes(attributes),
       ]);
 
   @override
   CborValue get cborValue => toCborList();
+
+  @override
+  String toString() =>
+      'BcBootstrapWitness(publicKey: $publicKey, signature: $signature, chainCode: $chainCode, attributes: $attributes)';
 }
 
 ///
@@ -528,9 +531,7 @@ class BcMetadata extends BcAbstractCbor {
   bool get isEmpty => value is CborNull;
 
   @override
-  String toString() {
-    return 'BcMetadata(value: $cborJson)';
-  }
+  String toString() => 'BcMetadata(value: $cborJson)';
 
   dynamic toJson() => BcPlutusData.cborToJson(value);
 
@@ -583,7 +584,7 @@ class BcTransaction extends BcAbstractCbor {
     final bool? isValid =
         list[2] is CborBool ? (list[2] as CborBool).value : null;
     // final metadata = (list.length >= 3) ? BcMetadata(value: list[3]) : null;
-    final auxData = (list.length >= 3 && list[3] is CborMap)
+    final auxData = (list.length >= 4 && list[3] is CborMap)
         ? BcAuxiliaryData.fromCbor(list[3] as CborMap)
         : BcAuxiliaryData();
     return BcTransaction(

@@ -32,6 +32,8 @@ void main() {
       logger.info(cbor);
       final hex1 = redeemer1.hex;
       logger.info(hex1);
+      final redeemer2 = BcRedeemer.fromHex(hex1);
+      expect(redeemer2, equals(redeemer1));
     });
     test('cbor2', () {
       final redeemer1 = BcRedeemer(
