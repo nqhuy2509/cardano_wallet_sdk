@@ -65,8 +65,8 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
   Future<Result<BcTransaction, String>> submitTransaction({
     required BcTransaction tx,
   }) async {
-    final submitResult =
-        await blockchainAdapter.submitTransaction(tx.serialize);
+    final submitResult = await blockchainAdapter.submitTransaction(
+        cborTransaction: tx.serialize);
     if (submitResult.isErr()) return Err(submitResult.unwrapErr());
     return Ok(tx);
   }
