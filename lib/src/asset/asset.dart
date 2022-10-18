@@ -88,6 +88,19 @@ class CurrencyAssetMetadata {
   /// Number of decimals in currency. ADA has 6. Default is 0.
   final int decimals;
 
+  // Uint8List getNameAsBytes() {
+  //   if (name != null && !name.isEmpty()) {
+  //     //Check if caller has provided a hex string as asset name
+  //     if (name.startsWith("0x")) {
+  //       assetNameBytes = HexUtil.decodeHexString(name.substring(2));
+  //     } else {
+  //       assetNameBytes = name.getBytes(StandardCharsets.UTF_8);
+  //     }
+  //   } else {
+  //     return Uint8List.fromList([]);
+  //   }
+  // }
+
   CurrencyAssetMetadata(
       {required this.name,
       required this.description,

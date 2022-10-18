@@ -3,7 +3,7 @@
 
 import 'package:blockfrost/blockfrost.dart';
 import 'package:dio/dio.dart';
-import 'package:built_value/json_object.dart';
+// import 'package:built_value/json_object.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -42,7 +42,7 @@ final accountContent = Response(
     statusCode: 200,
     data: serializers.fromJson(
       AccountContent.serializer,
-      '["active",false,"controlled_amount","199228617","rewards_sum","0","withdrawals_sum","0","reserves_sum","0","treasury_sum","0","withdrawable_amount","0"]',
+      '["stake_address","$addr1","active",false,"controlled_amount","199228617","rewards_sum","0","withdrawals_sum","0","reserves_sum","0","treasury_sum","0","withdrawable_amount","0"]',
       // '["active",true,"active_epoch",135,"controlled_amount","398515694","rewards_sum","690831","withdrawals_sum","0","reserves_sum","0","treasury_sum","0","withdrawable_amount","690831","pool_id","pool14pdhhugxlqp9vta49pyfu5e2d5s82zmtukcy9x5ylukpkekqk8l"]',
     )!);
 
@@ -51,19 +51,19 @@ Response<TxContent> txContent(String txId) {
   switch (txId) {
     case tx1:
       json =
-          '["block","$blk1","block_height",2606771,"slot",27385838,"index",2,"output_amount",[["unit","lovelace","quantity","999831199"]],"fees","168801","deposit","0","size",289,"invalid_hereafter","27392991","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
+          '["block","$blk1","hash","1234","block_time",1,"redeemer_count",1,"valid_contract",true,"block_height",2606771,"slot",27385838,"index",2,"output_amount",[["unit","lovelace","quantity","999831199"]],"fees","168801","deposit","0","size",289,"invalid_hereafter","27392991","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
       break;
     case tx2:
       json =
-          '["block","$blk2","block_height",2608000,"slot",27422621,"index",1,"output_amount",[["unit","lovelace","quantity","299324796"]],"fees","168801","deposit","0","size",289,"invalid_hereafter","27429804","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
+          '["block","$blk2","hash","1234","block_time",1,"redeemer_count",1,"valid_contract",true,"block_height",2608000,"slot",27422621,"index",1,"output_amount",[["unit","lovelace","quantity","299324796"]],"fees","168801","deposit","0","size",289,"invalid_hereafter","27429804","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
       break;
     case tx3:
       json =
-          '["block","$blk3","block_height",2704226,"slot",30311384,"index",1,"output_amount",[["unit","lovelace","quantity","101228617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]],"fees","178789","deposit","0","size",496,"invalid_hereafter","30318566","utxo_count",4,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
+          '["block","$blk3","hash","1234","block_time",1,"redeemer_count",1,"valid_contract",true,"block_height",2704226,"slot",30311384,"index",1,"output_amount",[["unit","lovelace","quantity","101228617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]],"fees","178789","deposit","0","size",496,"invalid_hereafter","30318566","utxo_count",4,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
       break;
     case tx4:
       json =
-          '["block","$blk4","block_height",2704219,"slot",30311175,"index",0,"output_amount",[["unit","lovelace","quantity","4960335032"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","948"]],"fees","172585","deposit","0","size",365,"invalid_hereafter","30318341","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
+          '["block","$blk4","hash","1234","block_time",1,"redeemer_count",1,"valid_contract",true,"block_height",2704219,"slot",30311175,"index",0,"output_amount",[["unit","lovelace","quantity","4960335032"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","948"]],"fees","172585","deposit","0","size",365,"invalid_hereafter","30318341","utxo_count",3,"withdrawal_count",0,"mir_cert_count",0,"delegation_count",0,"stake_cert_count",0,"pool_update_count",0,"pool_retire_count",0,"asset_mint_or_burn_count",0]';
       break;
     default:
       throw Exception('unknown txId: $txId');
@@ -119,19 +119,19 @@ Response<TxContentUtxo> txContentUtxo(String txId) {
   switch (txId) {
     case tx1:
       json =
-          '["inputs",[["address","addr_test1qzxs6rwvj65sgylxh27y6ljdys8vr22z46s27k3m7fsaqcpxngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsh478e0","amount",[["unit","lovelace","quantity","1000000000"]], "tx_hash", "9c78707104020738c01f17e9d04d465aa6d41806617efa74abec303b50b37152", "output_index", 0]],"outputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]]],["address","addr_test1qp680xknwamupzcuf9jwngrr6k69vzuwyjs87z583k74gafxngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsx5kkgg","amount",[["unit","lovelace","quantity","899831199"]]]]]';
+          '["hash","ffcbd47773a37289bc64b976d3a0b823594cce330c2f425437e5419437c589db","inputs",[["address","addr_test1qzxs6rwvj65sgylxh27y6ljdys8vr22z46s27k3m7fsaqcpxngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsh478e0","amount",[["unit","lovelace","quantity","1000000000"]],"tx_hash","9c78707104020738c01f17e9d04d465aa6d41806617efa74abec303b50b37152","output_index",0,"data_hash",null,"inline_datum",null,"reference_script_hash",null,"collateral",false,"reference",false]],"outputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]],"output_index",0,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null],["address","addr_test1qp680xknwamupzcuf9jwngrr6k69vzuwyjs87z583k74gafxngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsx5kkgg","amount",[["unit","lovelace","quantity","899831199"]],"output_index",1,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null]]]';
       break;
     case tx2:
       json =
-          '["inputs",[["address","addr_test1qrk57pwnv502vtrz4uhnym0ajefnrcz8p63f982n0fhlhh3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5cts577csf","amount",[["unit","lovelace","quantity","299493597"]], "tx_hash", "d11241823c72eaccc50303f865c9b6a5fff5828d87ef9da430f22a049acb04d1", "output_index", 1]],"outputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]]],["address","addr_test1qqltwrdj339cx6l98ze8zveldczmrg0cr0u7k7f6gyadae3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsh243r9","amount",[["unit","lovelace","quantity","199324796"]]]]]';
+          '["hash","8afcf3999633a58c9ce5e22578b59ef5bb7c5dddacfbaf504ee05f5f5ad0d581","inputs",[["address","addr_test1qrk57pwnv502vtrz4uhnym0ajefnrcz8p63f982n0fhlhh3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5cts577csf","amount",[["unit","lovelace","quantity","299493597"]],"tx_hash","d11241823c72eaccc50303f865c9b6a5fff5828d87ef9da430f22a049acb04d1","output_index",1,"data_hash",null,"inline_datum",null,"reference_script_hash",null,"collateral",false,"reference",false]],"outputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]],"output_index",0,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null],["address","addr_test1qqltwrdj339cx6l98ze8zveldczmrg0cr0u7k7f6gyadae3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsh243r9","amount",[["unit","lovelace","quantity","199324796"]],"output_index",1,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null]]]';
       break;
     case tx3:
       json =
-          '["inputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]], "tx_hash", "8afcf3999633a58c9ce5e22578b59ef5bb7c5dddacfbaf504ee05f5f5ad0d581","output_index", 0],["address","addr_test1qrektsyevyxxqpytjwnwxvmvrj8xgzv4qsuzf57qkp432ma24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sk7kesv","amount",[["unit","lovelace","quantity","1407406"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"]], "tx_hash", "dd45074a89c51562cf68174e94db93d800c4cfa9e5c474f9d906a5aaf7c5b953", "output_index", 0]],"outputs",[["address","addr_test1qpyrm5j80cwcgc0mypy4cq7547ylkun7hsx5amnhep55nm3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5cts95gflm","amount",[["unit","lovelace","quantity","2000000"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]]],["address","addr_test1qpcdsfzewqkl3w5kxk553hts5lvw9tdjda9nzt069gqmyud24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9s89kyst","amount",[["unit","lovelace","quantity","99228617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]]]]]';
+          '["hash","339581327a0da0b3397adf41c56fd56b4737f5afd4c9bb8c41744cc85e221538","inputs",[["address","addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq","amount",[["unit","lovelace","quantity","100000000"]],"tx_hash","8afcf3999633a58c9ce5e22578b59ef5bb7c5dddacfbaf504ee05f5f5ad0d581","output_index",0,"data_hash",null,"inline_datum",null,"reference_script_hash",null,"collateral",false,"reference",false],["address","addr_test1qrektsyevyxxqpytjwnwxvmvrj8xgzv4qsuzf57qkp432ma24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sk7kesv","amount",[["unit","lovelace","quantity","1407406"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"]],"tx_hash","dd45074a89c51562cf68174e94db93d800c4cfa9e5c474f9d906a5aaf7c5b953","output_index",0,"data_hash",null,"inline_datum",null,"reference_script_hash",null,"collateral",false,"reference",false]],"outputs",[["address","addr_test1qpyrm5j80cwcgc0mypy4cq7547ylkun7hsx5amnhep55nm3xngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5cts95gflm","amount",[["unit","lovelace","quantity","2000000"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]],"output_index",0,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null],["address","addr_test1qpcdsfzewqkl3w5kxk553hts5lvw9tdjda9nzt069gqmyud24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9s89kyst","amount",[["unit","lovelace","quantity","99228617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","1"]],"output_index",1,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null]]]';
       break;
     case tx4:
       json =
-          '["inputs",[["address","addr_test1qzu5kd7wqjhgjkdy557d8fu3gq5ktjmjwah0n9y285unuxqxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsd434uu","amount",[["unit","lovelace","quantity","4960507617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","950"]], "tx_hash", "fb4a0898c580443b757782fd5393a82bcd43b5d7bc514228d0edca331b33795f", "output_index", 1]],"outputs",[["address","addr_test1qrektsyevyxxqpytjwnwxvmvrj8xgzv4qsuzf57qkp432ma24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sk7kesv","amount",[["unit","lovelace","quantity","1407406"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"]]],["address","addr_test1qqcgrr08ycu63a5qe6sjgr8narpv2czfm3y3td9njq9hfxcxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsvvlyct","amount",[["unit","lovelace","quantity","4958927626"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","948"]]]]]';
+          '["hash","dd45074a89c51562cf68174e94db93d800c4cfa9e5c474f9d906a5aaf7c5b953","inputs",[["address","addr_test1qzu5kd7wqjhgjkdy557d8fu3gq5ktjmjwah0n9y285unuxqxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsd434uu","amount",[["unit","lovelace","quantity","4960507617"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","950"]],"tx_hash","fb4a0898c580443b757782fd5393a82bcd43b5d7bc514228d0edca331b33795f","output_index",1,"data_hash",null,"inline_datum",null,"reference_script_hash",null,"collateral",false,"reference",false]],"outputs",[["address","addr_test1qrektsyevyxxqpytjwnwxvmvrj8xgzv4qsuzf57qkp432ma24fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sk7kesv","amount",[["unit","lovelace","quantity","1407406"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","2"]],"output_index",0,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null],["address","addr_test1qqcgrr08ycu63a5qe6sjgr8narpv2czfm3y3td9njq9hfxcxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsvvlyct","amount",[["unit","lovelace","quantity","4958927626"],["unit","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","quantity","948"]],"output_index",1,"data_hash",null,"inline_datum",null,"collateral",false,"reference_script_hash",null]]]';
       break;
     default:
       throw Exception('unknown txId: $txId');
@@ -149,11 +149,18 @@ Response<TxContentUtxo> txContentUtxo(String txId) {
   }
 }
 
-final Response<Asset> asset = Response(
+Response<Asset> toAsset(String json) => Response(
     requestOptions: RequestOptions(path: ''),
     statusCode: 200,
-    data: serializers.fromJson(Asset.serializer,
-        '["policy_id","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","fingerprint","asset1cvmyrfrc7lpht2hcjwr9lulzyyjv27uxh3kcz0","quantity","100042","initial_mint_tx_hash","abfda1ba36b9ee541516fda311319f7bdb3e3928776c2982d2f027f3e8fa54c7","mint_or_burn_count",1,"metadata",["name","Testcoin","description","Testcoin crypto powered by Cardano testnet.","ticker","TEST","url","https://developers.cardano.org/"]]')!);
+    data: serializers.fromJson(Asset.serializer, json)!);
+
+final asset1Json =
+    '["asset","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","policy_id","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","asset_name",null,"fingerprint","asset1cvmyrfrc7lpht2hcjwr9lulzyyjv27uxh3kcz0","quantity","135042","initial_mint_tx_hash","abfda1ba36b9ee541516fda311319f7bdb3e3928776c2982d2f027f3e8fa54c7","mint_or_burn_count",8,"onchain_metadata",null,"metadata",["name","Testcoin","description","Testcoin crypto powered by Cardano testnet.","ticker","TEST","url","https://developers.cardano.org/","logo",null,"decimals",null]]';
+// final Response<Asset> asset = Response(
+//     requestOptions: RequestOptions(path: ''),
+//     statusCode: 200,
+//     data: serializers.fromJson(Asset.serializer, '')!);
+// '["policy_id","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","fingerprint","asset1cvmyrfrc7lpht2hcjwr9lulzyyjv27uxh3kcz0","quantity","100042","initial_mint_tx_hash","abfda1ba36b9ee541516fda311319f7bdb3e3928776c2982d2f027f3e8fa54c7","mint_or_burn_count",1,"metadata",["name","Testcoin","description","Testcoin crypto powered by Cardano testnet.","ticker","TEST","url","https://developers.cardano.org/"]]')!);
 
 /*
 blockfrost.getCardanoAssetsApi().assetsAssetGet(asset: 6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7) -> ["policy_id","6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7","asset_name",null,"fingerprint","asset1cvmyrfrc7lpht2hcjwr9lulzyyjv27uxh3kcz0","quantity","100042","initial_mint_tx_hash","abfda1ba36b9ee541516fda311319f7bdb3e3928776c2982d2f027f3e8fa54c7","mint_or_burn_count",1,"onchain_metadata",null,"metadata",["name","Testcoin","description","Testcoin crypto powered by Cardano testnet.","ticker","TEST","url","https://developers.cardano.org/","logo",null,"decimals",null]]
@@ -194,34 +201,123 @@ Blockfrost buildMockBlockfrostWallet2() {
   //addresses
   when(cardanoAccountsApi.accountsStakeAddressGet(stakeAddress: stakeAddr2))
       .thenAnswer((_) async => accountContent);
-  final addresses2 = (ListBuilder<JsonObject>()
-        ..add(MapJsonObject({'address': addr1}))
-        ..add(MapJsonObject({'address': addr2}))
-        ..add(MapJsonObject({'address': addr3})))
+
+  final ac1 = (AccountContentBuilder()
+        ..stakeAddress = addr1
+        ..active = true
+        ..controlledAmount = '0'
+        ..rewardsSum = '0'
+        ..withdrawalsSum = '0'
+        ..reservesSum = '0'
+        ..treasurySum = '0'
+        ..withdrawableAmount = '0')
       .build();
+  final ac2 = (AccountContentBuilder()
+        ..stakeAddress = addr2
+        ..active = true
+        ..controlledAmount = '0'
+        ..rewardsSum = '0'
+        ..withdrawalsSum = '0'
+        ..reservesSum = '0'
+        ..treasurySum = '0'
+        ..withdrawableAmount = '0')
+      .build();
+  final ac3 = (AccountContentBuilder()
+        ..stakeAddress = addr3
+        ..active = true
+        ..controlledAmount = '0'
+        ..rewardsSum = '0'
+        ..withdrawalsSum = '0'
+        ..reservesSum = '0'
+        ..treasurySum = '0'
+        ..withdrawableAmount = '0')
+      .build();
+  // final addresses2 = (ListBuilder<AccountContent>()
+  //       ..add(ac1)
+  //       ..add(ac2)
+  //       ..add(ac3))
+  //     .build();
+
+  final addresses2 = (ListBuilder<AccountAddressesContentInner>()
+        ..add((AccountAddressesContentInnerBuilder()..address = addr1).build())
+        ..add((AccountAddressesContentInnerBuilder()..address = addr2).build())
+        ..add((AccountAddressesContentInnerBuilder()..address = addr3).build()))
+      .build();
+  // final addresses2a = (ListBuilder<AccountAddressesContentInner>()
+  //       ..add((AccountAddressesContentInnerBuilder()..address = addr1).build())
+  //       ..add((AccountAddressesContentInnerBuilder()..address = addr2).build()))
+  //     .build();
+  // final addresses2b = (ListBuilder<AccountAddressesContentInner>()
+  //       ..add((AccountAddressesContentInnerBuilder()..address = addr3).build()))
+  //     .build();
 
   //addresses transactions
   when(cardanoAccountsApi.accountsStakeAddressAddressesGet(
-          stakeAddress: stakeAddr2, count: anyNamed('count')))
+          stakeAddress: stakeAddr2, count: 100, page: anyNamed('page')))
       .thenAnswer((_) async => Response(
           requestOptions: RequestOptions(path: ''),
           statusCode: 200,
           data: addresses2));
-  when(cardanoAddressesApi.addressesAddressTxsGet(address: addr1)).thenAnswer(
-      (_) async => Response(
+  when(cardanoAccountsApi.accountsStakeAddressAddressesGet(
+          stakeAddress: stakeAddr2, count: 2, page: 1))
+      .thenAnswer((_) async => Response(
           requestOptions: RequestOptions(path: ''),
           statusCode: 200,
-          data: BuiltList.of([tx1, tx2, tx3])));
-  when(cardanoAddressesApi.addressesAddressTxsGet(address: addr2)).thenAnswer(
-      (_) async => Response(
+          data: addresses2.sublist(0, 2)));
+  when(cardanoAccountsApi.accountsStakeAddressAddressesGet(
+          stakeAddress: stakeAddr2, count: 2, page: 2))
+      .thenAnswer((_) async => Response(
           requestOptions: RequestOptions(path: ''),
           statusCode: 200,
-          data: BuiltList.of([tx4, tx3])));
-  when(cardanoAddressesApi.addressesAddressTxsGet(address: addr3)).thenAnswer(
-      (_) async => Response(
+          data: addresses2.sublist(2, 3)));
+
+  when(cardanoAddressesApi.addressesAddressTransactionsGet(
+          address: addr1, count: 100, page: anyNamed('page')))
+      .thenAnswer((_) async => Response(
           requestOptions: RequestOptions(path: ''),
           statusCode: 200,
-          data: BuiltList.of([tx3])));
+          data: BuiltList.of([_st2tx(tx1), _st2tx(tx2), _st2tx(tx3)])));
+  when(cardanoAddressesApi.addressesAddressTransactionsGet(
+          address: addr1, count: 2, page: 1))
+      .thenAnswer((_) async => Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: BuiltList.of([_st2tx(tx1), _st2tx(tx2)])));
+  when(cardanoAddressesApi.addressesAddressTransactionsGet(
+          address: addr1, count: 2, page: 2))
+      .thenAnswer((_) async => Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: BuiltList.of([_st2tx(tx3)])));
+
+  when(cardanoAddressesApi.addressesAddressTransactionsGet(
+          address: addr2, count: anyNamed('count'), page: anyNamed('page')))
+      .thenAnswer((_) async => Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: BuiltList.of([_st2tx(tx4), _st2tx(tx3)])));
+  when(cardanoAddressesApi.addressesAddressTransactionsGet(
+          address: addr3, count: anyNamed('count'), page: anyNamed('page')))
+      .thenAnswer((_) async => Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: BuiltList.of([_st2tx(tx3)])));
+  //OLD addresses transactions
+  // when(cardanoAddressesApi.addressesAddressTxsGet(address: addr1)).thenAnswer(
+  //     (_) async => Response(
+  //         requestOptions: RequestOptions(path: ''),
+  //         statusCode: 200,
+  //         data: BuiltList.of([tx1, tx2, tx3])));
+  // when(cardanoAddressesApi.addressesAddressTxsGet(address: addr2)).thenAnswer(
+  //     (_) async => Response(
+  //         requestOptions: RequestOptions(path: ''),
+  //         statusCode: 200,
+  //         data: BuiltList.of([tx4, tx3])));
+  // when(cardanoAddressesApi.addressesAddressTxsGet(address: addr3)).thenAnswer(
+  //     (_) async => Response(
+  //         requestOptions: RequestOptions(path: ''),
+  //         statusCode: 200,
+  //         data: BuiltList.of([tx3])));
 
   //transaction content
   when(cardanoTransactionsApi.txsHashGet(hash: tx1))
@@ -267,9 +363,17 @@ Blockfrost buildMockBlockfrostWallet2() {
 
   //native assets
   when(cardanoAssetsApi.assetsAssetGet(asset: asset1))
-      .thenAnswer((_) async => asset);
+      .thenAnswer((_) async => toAsset(asset1Json));
 
   //when(cardanoTransactionsApi.txsHashGet(hash: tx1)).thenAnswer((realInvocation) => null)
 
   return blockfrost;
 }
+
+AddressTransactionsContentInner _st2tx(String txHash) =>
+    (AddressTransactionsContentInnerBuilder()
+          ..txHash = txHash
+          ..txIndex = 0
+          ..blockHeight = 1
+          ..blockTime = 1)
+        .build();
