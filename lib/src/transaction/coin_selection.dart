@@ -104,10 +104,10 @@ class FlatMultiAsset {
 
   @override
   String toString() {
-    final vals = assets.entries.fold(
-        '',
-        (String prefix, MapEntry e) =>
-            "${prefix == '' ? '' : prefix + ','} ${e.key == lovelaceAssetId ? 'lovelace' : e.key}:${e.value}");
+    final vals = assets.entries.fold('', (String prefix, MapEntry e) {
+      final header = prefix == '' ? '' : "$prefix,";
+      return "$header ${e.key == lovelaceAssetId ? 'lovelace' : e.key}:${e.value}";
+    });
     return "FlatMultiAsset(fee:$fee, $vals)";
   }
 
