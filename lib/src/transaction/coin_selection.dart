@@ -50,6 +50,8 @@ typedef CoinSelectionAlgorithm
 //   AssetRequest({required this.name, required this.value});
 // }
 
+final _loggerFMA = Logger('FlatMultiAsset');
+
 class FlatMultiAsset {
   final Map<AssetId, Coin> assets;
   final Coin fee;
@@ -63,10 +65,21 @@ class FlatMultiAsset {
           assets: assets..[assetId] = (assets[assetId] ?? coinZero) + quantity,
           fee: fee);
 
-  bool assetIdFunded(Iterable<UTxO> candidateUTxOs, AssetId assetId) =>
-      candidateUTxOs.fold(coinZero,
-          (sum, utxo) => (sum as int) + utxo.output.quantityAssetId(assetId)) >=
-      assets[assetId]! + (assetId == lovelaceAssetId ? fee : coinZero);
+  bool assetIdFunded(Iterable<UTxO> candidateUTxOs, AssetId assetId) {
+    final calculated = candidateUTxOs.fold(coinZero,
+        (sum, utxo) => (sum as int) + utxo.output.quantityAssetId(assetId));
+    final required =
+        assets[assetId]! + (assetId == lovelaceAssetId ? fee : coinZero);
+    final success = calculated >= required;
+    _loggerFMA
+        .info("calculated: $calculated >= required: $required -> $success");
+    return success;
+  }
+
+//  bool assetIdFunded(Iterable<UTxO> candidateUTxOs, AssetId assetId) =>
+//       candidateUTxOs.fold(coinZero,
+//           (sum, utxo) => (sum as int) + utxo.output.quantityAssetId(assetId)) >=
+//       assets[assetId]! + (assetId == lovelaceAssetId ? fee : coinZero);
 
   bool funded(Iterable<UTxO> candidateUTxOs) =>
       _funded(utxosToMap(candidateUTxOs));
@@ -88,6 +101,15 @@ class FlatMultiAsset {
         for (MapEntry e in assets.entries)
           e.key: ((utxosSum[e.key] ?? coinZero) - e.value) as int
       };
+
+  @override
+  String toString() {
+    final vals = assets.entries.fold(
+        '',
+        (String prefix, MapEntry e) =>
+            "${prefix == '' ? '' : prefix + ','} ${e.key == lovelaceAssetId ? 'lovelace' : e.key}:${e.value}");
+    return "FlatMultiAsset(fee:$fee, $vals)";
+  }
 
   @override
   int get hashCode => hash2(const MapEquality().hash(assets), fee);
@@ -267,7 +289,7 @@ Future<Result<CoinSelection, CoinSelectionError>> largestFirst({
     return Err(CoinSelectionError(
       reason: CoinSelectionErrorEnum.inputValueInsufficient,
       message:
-          "($selectedUTxOs.length) UTxOs selected exceeds allowed coinSelectionLimit ($coinSelectionLimit)",
+          "($selectedUTxOs.length) UTxOs insufficient to fund spend request ($spendRequest)",
     ));
   }
 }
