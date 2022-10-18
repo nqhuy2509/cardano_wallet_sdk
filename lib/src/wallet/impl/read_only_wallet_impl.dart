@@ -51,7 +51,7 @@ class ReadOnlyWalletImpl implements ReadOnlyWallet {
     final Coin rewardsSum = stakeAccounts
         .map((s) => s.withdrawalsSum)
         .fold(0, (p, c) => p + c); //TODO figure out the math
-    final Coin lovelaceSum = currencies[lovelaceHex] as Coin;
+    final Coin lovelaceSum = currencies[lovelaceHex] ?? 0;
     final result = lovelaceSum + rewardsSum;
     return result;
   }
