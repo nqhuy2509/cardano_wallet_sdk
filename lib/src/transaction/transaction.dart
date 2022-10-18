@@ -237,11 +237,13 @@ class RawTransactionImpl implements RawTransaction {
   String toString() => "RawTransaction(fees: $fees status: $status id: $txId)";
 }
 
+final _txLogger = Logger('TransactionScanner');
+
 ///
 /// Transaction extension -  wallet attribute collection methods
 ///
 extension TransactionScanner on RawTransaction {
-  /// assetIds found in transactioins. TODO confirm unit == assetId
+  /// assetIds found in transactioins.
   Set<String> get assetIds {
     Set<String> result = {lovelaceHex};
     for (var input in inputs) {
@@ -256,8 +258,6 @@ extension TransactionScanner on RawTransaction {
     }
     return result;
   }
-
-  static final _logger = Logger('TransactionScanner');
 
   ///
   /// return a map of all currencies with their net quantity change for a given set of
@@ -274,7 +274,7 @@ extension TransactionScanner on RawTransaction {
         for (var amount in input.amounts) {
           final Coin beginning = result[amount.unit] ?? coinZero;
           result[amount.unit] = beginning - amount.quantity;
-          _logger.info(
+          _txLogger.info(
               "$time tx: ${txId.substring(0, 5)}.. innput: ${input.address.toString().substring(0, 15)}.. $beginning - ${amount.quantity} = ${result[amount.unit]}");
         }
       }
@@ -285,7 +285,7 @@ extension TransactionScanner on RawTransaction {
         for (var amount in output.amounts) {
           final Coin beginning = result[amount.unit] ?? coinZero;
           result[amount.unit] = beginning + amount.quantity;
-          _logger.info(
+          _txLogger.info(
               "$time tx: ${txId.substring(0, 5)}.. output: ${output.address.toString().substring(0, 15)}.. $beginning + ${amount.quantity} = ${result[amount.unit]}");
         }
       }
@@ -309,7 +309,7 @@ extension TransactionScanner on RawTransaction {
         result.add(output.address);
       }
     }
-    _logger.info(
+    _txLogger.info(
         "filterAddresses(input addresses: ${addressSet.length} -> filtered addresses: ${result.length})");
     return result;
   }
@@ -325,8 +325,8 @@ Set<UTxO> collectUTxOs(
       for (int index = 0; index < tx.outputs.length; index++) {
         final output = tx.outputs[index];
         final contains = ownedAddresses.contains(output.address);
-        // logger.info(
-        //     "contains:$contains, tx=${tx.txId.substring(0, 20)} index[$index]=${output.amounts.first.quantity}");
+        _txLogger.info(
+            "collectUTxOs(contains:$contains, tx=${tx.txId.substring(0, 20)} index[$index]=${output.amounts.first.quantity})");
         if (contains) {
           final utxo =
               UTxO(output: output, transactionId: tx.txId, index: index);

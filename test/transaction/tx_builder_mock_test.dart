@@ -3,10 +3,16 @@
 
 import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
 import 'package:oxidized/oxidized.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import '../wallet/mock_wallet_2.dart';
 
 void main() {
+  Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+  final logger = Logger('TxBuilderMockTest');
   const ada = 1000000;
   final mockAdapter = BlockfrostBlockchainAdapter(
       blockfrost: buildMockBlockfrostWallet2(),
@@ -37,6 +43,9 @@ void main() {
       //setup wallet
       final updateResult =
           await mockAdapter.updateWallet(stakeAddress: stakeAddress);
+      if (updateResult.isErr()) {
+        logger.severe(updateResult.unwrapErr());
+      }
       expect(updateResult.isOk(), isTrue);
       final update = updateResult.unwrap();
       wallet.refresh(

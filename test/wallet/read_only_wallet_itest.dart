@@ -5,8 +5,9 @@
 
 import 'package:cardano_wallet_sdk/cardano_wallet_sdk.dart';
 import '../blockchain/blockfrost_test_auth_interceptor.dart';
-import 'package:test/test.dart';
 import 'package:oxidized/oxidized.dart';
+import 'package:logging/logging.dart';
+import 'package:test/test.dart';
 
 void main() {
   const wallet1 =
@@ -62,36 +63,42 @@ final formatter = AdaFormattter.compactCurrency();
 
 Future<Result<ReadOnlyWallet, String>> testWalletFromBuilder(
     WalletBuilder builder) async {
+  Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+  final logger = Logger('ReadOnlyWalletTest');
   final result = await builder.readOnlyBuildAndSync();
   bool error = false;
   result.when(
     ok: (wallet) {
-      print(
+      logger.info(
           "Wallet(name: ${wallet.walletName}, balance: ${formatter.format(wallet.balance)})");
       for (var addr in wallet.addresses) {
-        print(addr.toBech32());
+        logger.info(addr.toString());
       }
       for (var tx in wallet.transactions) {
-        print("$tx");
+        logger.info("$tx");
       }
       wallet.currencies.forEach((key, value) {
-        print("$key: ${key == lovelaceHex ? formatter.format(value) : value}");
+        logger.info(
+            "$key: ${key == lovelaceHex ? formatter.format(value) : value}");
       });
       for (var acct in wallet.stakeAccounts) {
         final ticker = acct.poolMetadata?.ticker ??
             acct.poolMetadata?.name ??
             acct.poolId!;
         for (var reward in acct.rewards) {
-          print(
+          logger.info(
               "epoch: ${reward.epoch}, value: ${formatter.format(reward.amount)}, ticker: $ticker");
         }
       }
       final int calculatSum =
           wallet.calculatedBalance; //TODO figure out the math
-      expect(wallet.balance, equals(calculatSum));
+      expect(calculatSum, equals(wallet.balance));
     },
     err: (err) {
-      print(err);
+      logger.severe(err);
       error = true;
       expect(error, isFalse, reason: err);
       return Err(err);
