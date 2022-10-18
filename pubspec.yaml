@@ -8,7 +8,9 @@ environment:
 
 dependencies:
   analyzer: ^4.7.0
-  blockfrost: ^1.0.0-dev.8
+  blockfrost: ^1.1.0-dev.1
+  # blockfrost:
+  #   path: ../blockfrost_api
   bip32_ed25519: 0.5.0
   pinenacl: 0.5.1
   crypto: ^3.0.2
@@ -40,7 +42,7 @@ dev_dependencies:
 #     path: ../pinenacl-dart
 # bip32_ed25519:
 #   path: ../bip32-ed25519-dart
-#  blockfrost:
+# blockfrost:
 # git: git@github.com:reaster/blockfrost_api.git
 # path: ../blockfrost_api
 
