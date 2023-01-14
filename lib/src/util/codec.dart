@@ -131,3 +131,11 @@ String bech32ShelleyAddressFromIntList(List<int> bytes) {
   final addr = ShelleyAddress(bytes);
   return addr.toBech32();
 }
+
+const Bech32Encoder stakePoolEncoder = Bech32Encoder(hrp: 'pool');
+
+String bech32FromStakePoolBytes(List<int> bytes) =>
+    stakePoolEncoder.encode(bytes);
+
+Uint8List stakePoolBytesFromBech32(String bech32) =>
+    stakePoolEncoder.decode(bech32);
