@@ -111,5 +111,19 @@ void main() {
         }
       }
     });
+
+    test('Get the default (first) address from wallet', () {
+      final wallet = (WalletBuilder()
+            ..network = Networks.testnet
+            ..testnetAdapterKey = blockfrostKey
+            ..mnemonic = mnemonic
+            ..blockchainAdapter = mockAdapter)
+          .build()
+          .unwrap();
+      final ShelleyReceiveKit addr0 =
+          wallet.account.unusedReceiveAddresses()[0];
+      logger.info("${addr0.chain}: ${addr0.address}");
+      //m/1852'/1815'/0'/0/0: addr_test1qputeu63ld6c0cd526w90ry2r9upc5ac8y3zetcg85xs5l924fm4c4hnud6cw53zj8v48kdwmeykn0knf74ag68tmf9sutu8kq
+    });
   });
 }
