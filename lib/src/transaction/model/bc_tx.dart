@@ -13,6 +13,7 @@ import './bc_abstract.dart';
 import './bc_plutus_data.dart';
 import './bc_scripts.dart';
 import './bc_redeemer.dart';
+import './bc_certificate.dart';
 
 class BcAsset {
   final String name;
@@ -187,29 +188,61 @@ class BcTransactionOutput extends BcAbstractCbor {
   }
 
   @override
-  String toString() {
-    return 'BcTransactionOutput(address: $address, value: $value)';
+  String toString() => 'BcTransactionOutput(address: $address, value: $value)';
+}
+
+class BcWithdrawal extends BcAbstractCbor {
+  /// Bech32 reward address
+  final String rewardAddress;
+  final BigInt coin;
+  BcWithdrawal({required this.rewardAddress, required this.coin});
+
+  factory BcWithdrawal.fromCbor({required MapEntry mapEntry}) {
+    final address =
+        bech32ShelleyAddressFromIntList((mapEntry.key as CborBytes).bytes);
+    final coin = (mapEntry.value as CborBigInt).toBigInt();
+    return BcWithdrawal(rewardAddress: address, coin: coin);
   }
+
+  @override
+  CborValue get cborValue => toCborMap();
+
+  CborMap toCborMap() => CborMap({
+        CborBytes(unit8BufferFromShelleyAddress(rewardAddress)):
+            CborBigInt(coin)
+      });
+
+  @override
+  String toString() =>
+      'BcWithdrawal(rewardAddress: $rewardAddress, coin: $coin)';
 }
 
 /// Core of the Shelley transaction that is signed.
 class BcTransactionBody extends BcAbstractCbor {
   final List<BcTransactionInput> inputs;
   final List<BcTransactionOutput> outputs;
+  final List<BcTransactionInput> collateral;
   final int fee;
   final int? ttl; //Optional
+  final List<BcCertificate> certs;
+  final List<BcWithdrawal> withdrawals;
   final List<int>? metadataHash; //Optional
   final int validityStartInterval;
   final List<BcMultiAsset> mint;
+  final List<int>? scriptDataHash;
 
   BcTransactionBody({
     required this.inputs,
     required this.outputs,
     required this.fee,
+    this.collateral = const [],
     this.ttl, //Optional
+    this.certs = const [],
+    this.withdrawals = const [],
     this.metadataHash, //Optional
     this.validityStartInterval = 0,
     this.mint = const [],
+    this.scriptDataHash,
   });
 
   factory BcTransactionBody.fromCbor({required CborMap map}) {
@@ -219,6 +252,11 @@ class BcTransactionBody extends BcAbstractCbor {
     final outputs = (map[const CborSmallInt(1)] as CborList)
         .map((i) => BcTransactionOutput.fromCbor(list: i as CborList))
         .toList();
+    final certs = map[const CborSmallInt(4)] == null
+        ? <BcCertificate>[]
+        : (map[const CborSmallInt(4)] as CborList)
+            .map((list) => BcCertificate.fromCbor(list: list as CborList))
+            .toList();
     final mint = (map[const CborSmallInt(9)] == null)
         ? null
         : (map[const CborSmallInt(9)] as CborMap)
@@ -232,6 +270,7 @@ class BcTransactionBody extends BcAbstractCbor {
       ttl: map[const CborSmallInt(3)] == null
           ? null
           : (map[const CborSmallInt(3)] as CborInt).toInt(),
+      certs: certs,
       metadataHash: map[const CborSmallInt(7)] == null
           ? null
           : (map[const CborSmallInt(7)] as CborBytes).bytes,
@@ -257,6 +296,14 @@ class BcTransactionBody extends BcAbstractCbor {
       const CborSmallInt(2): CborSmallInt(fee),
       //3:ttl (optional)
       if (ttl != null) const CborSmallInt(3): CborSmallInt(ttl!),
+      //4:certs (optional)
+      if (certs.isNotEmpty)
+        const CborSmallInt(4): CborList(certs.map((m) => m.cborValue).toList()),
+      //5:withdrawals (optional)
+      if (withdrawals.isNotEmpty)
+        const CborSmallInt(5): CborMap(withdrawals
+            .map((m) => m.toCborMap())
+            .reduce((m1, m2) => m1..addAll(m2))),
       //7:metadataHash (optional)
       if (metadataHash != null && metadataHash!.isNotEmpty)
         const CborSmallInt(7): CborBytes(metadataHash!),
@@ -267,6 +314,13 @@ class BcTransactionBody extends BcAbstractCbor {
       if (mint.isNotEmpty)
         const CborSmallInt(9): CborMap(
             mint.map((m) => m.toCborMap()).reduce((m1, m2) => m1..addAll(m2))),
+      //11:scriptDataHash (optional)
+      if (scriptDataHash != null)
+        const CborSmallInt(11): CborBytes(scriptDataHash!),
+      //13:collateral (optional)
+      if (collateral.isNotEmpty)
+        const CborSmallInt(13):
+            CborList([for (final input in collateral) input.toCborList()]),
     });
   }
 
