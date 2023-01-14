@@ -96,7 +96,7 @@ class WalletBuilder {
   /// Create a read-only wallet matching the supplied properties. Resets the builder.
   Result<ReadOnlyWallet, String> readOnlyBuild() {
     if (_stakeAddress == null) {
-      return Err("Read-only wallet creation requires a staking address");
+      return const Err("Read-only wallet creation requires a staking address");
     }
     _walletName ??= "Wallet #${_walletNameIndex++}";
     if (_blockchainAdapter == null) {
@@ -176,7 +176,8 @@ class WalletBuilder {
               "rootSigningKey must be a master (starting with 'root_xsk') or a account root (starting with 'acct_xsk') private extended key: $_rootSigningKey");
         }
       } else {
-        return Err("wallet creation requires a 'rootPrivateKey' or 'mnemonic'");
+        return const Err(
+            "wallet creation requires a 'rootPrivateKey' or 'mnemonic'");
       }
     }
     _walletName ??= "Wallet #${_walletNameIndex++}";

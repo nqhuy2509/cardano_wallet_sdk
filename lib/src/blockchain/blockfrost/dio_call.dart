@@ -39,7 +39,7 @@ Future<Result<T, String>> dioCall<T extends Object>(
       if (onError != null) {
         onError(exception: dioError.error);
       }
-      return Err('internet not available');
+      return const Err('internet not available');
     }
     if (onError != null) {
       onError(dioError: dioError);

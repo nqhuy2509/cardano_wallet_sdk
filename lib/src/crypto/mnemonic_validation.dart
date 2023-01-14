@@ -16,11 +16,11 @@ Result<ValidMnemonicPhrase, String> validMnemonic({
   MnemonicLang lang = MnemonicLang.english,
 }) {
   if (phrase.isEmpty) {
-    return Err("mnemonic required");
+    return const Err("mnemonic required");
   }
   final ValidMnemonicPhrase mnemonic = phrase.toLowerCase().trim().split(' ');
   if (mnemonic.length < 3) {
-    return Err("at least 3 mnemonic words required");
+    return const Err("at least 3 mnemonic words required");
   }
   final wordList = loadWordsFunction(lang: lang);
   try {

@@ -67,14 +67,14 @@ class CoingeckoPriceService extends PriceService {
       {String from = 'ada', String to = 'usd'}) async {
     final fromId = await _toId(from);
     if (fromId == null) {
-      return Err("can't convert symbol($from) to ID");
+      return const Err("can't convert symbol($from) to ID");
     }
     final CoinGeckoResult<List<PricedCoin>> list =
         await coingecko.simplePrice(ids: [fromId], vs_currencies: [to]);
     if (list.isError) {
       return Err(list.errorMessage);
     } else if (list.data.isEmpty || list.data.first.data[to] == null) {
-      return Err("no data");
+      return const Err("no data");
     } else {
       PricedCoin pricedCoin = list.data.first;
       final timestamp = DateTime.now()

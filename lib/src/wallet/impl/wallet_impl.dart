@@ -109,14 +109,14 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
     int fee = 0,
   }) async {
     if (lovelace > balance) {
-      return Err('insufficient balance');
+      return const Err('insufficient balance');
     }
     if (toAddress.addressType != AddressType.base) {
-      return Err('only base shelley addresses currently supported');
+      return const Err('only base shelley addresses currently supported');
     }
     if (toAddress is ShelleyAddress) {
       if (toAddress.hrp != 'addr' && toAddress.hrp != 'addr_test') {
-        return Err(
+        return const Err(
             "not a valid shelley external addresses, expecting 'addr' or 'addr_test' prefix");
       }
     }
@@ -144,7 +144,7 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
     // ..fee(fee);
     final txResult = await builder.buildAndSign();
     if (txResult.isOk() && !txResult.unwrap().verify) {
-      return Err('transaction validation failed');
+      return const Err('transaction validation failed');
     }
     return txResult;
   }
