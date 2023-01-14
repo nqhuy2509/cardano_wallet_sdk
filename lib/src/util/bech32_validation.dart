@@ -18,7 +18,7 @@ Result<String, String> validBech32(
   if (hrpPrefixes.isEmpty) {
     throw Exception("validBech32 hrpPrefixes array must not be empty");
   }
-  if (isBlank(bech32)) return Err("address missing");
+  if (isBlank(bech32)) return const Err("address missing");
   final lowerCase = bech32.toLowerCase();
   if (hrpPrefixes.length > 1) {
     hrpPrefixes.sort((a, b) => b.compareTo(a));
@@ -31,7 +31,7 @@ Result<String, String> validBech32(
   }
   if (lowerCase.length > prefix.length &&
       lowerCase.codeUnitAt(prefix.length) != '1'.codeUnitAt(0)) {
-    return Err("missing '1' after prefix");
+    return const Err("missing '1' after prefix");
   }
   final data = lowerCase.length > prefix.length
       ? lowerCase.substring(prefix.length + 1)

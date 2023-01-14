@@ -21,7 +21,7 @@ Result<String, String> validAda({
         "invalid character: ${ada.substring(invalidCharIndex, invalidCharIndex + 1)}");
   }
   final amount = double.tryParse(ada) ?? 0.0;
-  if (!zeroAllowed && amount == 0.0) return Err("can't be zero");
+  if (!zeroAllowed && amount == 0.0) return const Err("can't be zero");
   final index = ada.lastIndexOf('.');
   final fraction =
       index >= 0 && index < ada.length ? ada.substring(index + 1) : '';
