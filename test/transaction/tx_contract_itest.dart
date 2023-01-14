@@ -38,6 +38,7 @@ void main() {
       final collateralUtxoHash =
           'ab44e0f5faf56154cc33e757c9d98a60666346179d5a7a0b9d77734c23c42082';
       int collateralIndex = 0;
+      /*
       final CollateralData collateral =
           _checkCollateral(sender, collateralUtxoHash, collateralIndex);
 
@@ -72,7 +73,7 @@ void main() {
       assertTrue(utxos.size() != 0,
           "No script utxo found for datumhash : " + datumHash);
       Utxo inputUtxo = utxos.get(0);
-
+*/
 /*
         Tuple<String, Integer> collateralTuple = checkCollateral(sender, collateral, collateralIndex);
         if (collateralTuple == null) {
@@ -253,7 +254,7 @@ bool transferToContractAddress(
                 return result.isSuccessful();
                 */
 }
-
+/*
 class CollateralData {
   final String collateralUtxoHash;
   final int collateralIndex;
@@ -266,6 +267,7 @@ CollateralData _checkCollateral(
 ) {
   return CollateralData(collateralUtxoHash, collateralIndex);
 }
+*/
 /*
 private Tuple<String, Integer> checkCollateral(Account sender, final String collateralUtxoHash,
                         final int collateralIndex) throws ApiException, AddressExcepion, CborSerializationException {
