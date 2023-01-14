@@ -78,7 +78,7 @@ void main() {
       expect(r5.unwrap().walletName, isNot(r6.unwrap().walletName),
           reason: "wallet names are unique");
     }); //, skip: ''
-  });
+  }, skip: "upgrade to Prepod");
 }
 
 final rootXskCoder = Bech32Encoder(hrp: 'root_xsk');

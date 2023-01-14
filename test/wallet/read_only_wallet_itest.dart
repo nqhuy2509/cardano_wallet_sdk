@@ -56,7 +56,7 @@ void main() {
     //     final wallet8 = 'stake1uy88uenysztnswv6u3cssgpamztc25q5wea703rnp50s4qq0ddctn';
     //     await testWallet(stakeAddress: wallet8, walletFactory: walletFactory, walletName: 'Fat Cat 8');
     //   }, skip: 'mainnet auth not working');
-  });
+  }, skip: "upgrade to Prepod");
 }
 
 final formatter = AdaFormattter.compactCurrency();
