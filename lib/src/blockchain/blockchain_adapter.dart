@@ -4,7 +4,7 @@
 import 'dart:typed_data';
 import 'package:oxidized/oxidized.dart';
 import '../network/network_id.dart';
-import '../transaction/min_fee_function.dart';
+import '../transaction/model/bc_protocol_parameters.dart';
 import '../transaction/transaction.dart';
 import '../wallet/impl/wallet_update.dart';
 import '../address/shelley_address.dart';
@@ -29,8 +29,12 @@ abstract class BlockchainAdapter extends BlockchainCache {
       {required Uint8List cborTransaction, CancelAction? cancelAction});
 
   /// Return the fee parameters for the given epoch number or the latest epoch if no number supplied.
-  Future<Result<LinearFee, String>> latestEpochParameters(
+  Future<Result<ProtocolParameters, String>> latestEpochParameters(
       {int epochNumber = 0, CancelAction? cancelAction});
+
+  /// Return the fee parameters for the given epoch number or the latest epoch if no number supplied.
+  // Future<Result<LinearFee, String>> latestEpochParameters(
+  //     {int epochNumber = 0, CancelAction? cancelAction});
   Networks get network;
 
   /// Return an implementation-specific instance of CancelAction.

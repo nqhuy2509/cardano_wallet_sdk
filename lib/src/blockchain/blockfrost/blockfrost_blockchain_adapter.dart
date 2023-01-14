@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'package:blockfrost/blockfrost.dart';
+import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
 import 'dart:typed_data';
 import 'package:built_collection/built_collection.dart';
@@ -12,7 +13,8 @@ import '../../network/network_id.dart';
 import '../../stake/stake_account.dart';
 import '../../stake/stake_pool.dart';
 import '../../stake/stake_pool_metadata.dart';
-import '../../transaction/min_fee_function.dart';
+import '../../transaction/model/bc_protocol_parameters.dart';
+import '../../transaction/model/bc_scripts.dart';
 import '../../transaction/transaction.dart';
 import '../../util/ada_time.dart';
 import '../../asset/asset.dart';
@@ -61,8 +63,33 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
   @override
   CancelAction cancelActionInstance() => DioCancelAction();
 
+  // @override
+  // Future<Result<LinearFee, String>> latestEpochParameters(
+  //     {int epochNumber = 0, CancelAction? cancelAction}) async {
+  //   if (epochNumber == 0) {
+  //     final blockResult = await latestBlock(cancelAction: cancelAction);
+  //     if (blockResult.isErr()) return Err(blockResult.unwrapErr());
+  //     epochNumber = blockResult.unwrap().epoch;
+  //   }
+  //   final cancelToken = (cancelAction as DioCancelAction?)?.cancelToken;
+  //   final paramResult = await dioCall<EpochParamContent>(
+  //     request: () => blockfrost.getCardanoEpochsApi().epochsNumberParametersGet(
+  //         number: epochNumber, cancelToken: cancelToken),
+  //     onSuccess: (data) => logger.info(
+  //         "blockfrost.getCardanoEpochsApi().epochsNumberParametersGet(number:$epochNumber) -> ${serializers.toJson(EpochParamContent.serializer, data)}"),
+  //     errorSubject: 'latest EpochParamContent',
+  //   );
+  //   if (paramResult.isErr()) return Err(paramResult.unwrapErr());
+  //   final epochParams = paramResult.unwrap();
+  //   final linearFee = LinearFee(
+  //     constant: epochParams.minFeeA,
+  //     coefficient: epochParams.minFeeB,
+  //   );
+  //   return Ok(linearFee);
+  // }
+
   @override
-  Future<Result<LinearFee, String>> latestEpochParameters(
+  Future<Result<ProtocolParameters, String>> latestEpochParameters(
       {int epochNumber = 0, CancelAction? cancelAction}) async {
     if (epochNumber == 0) {
       final blockResult = await latestBlock(cancelAction: cancelAction);
@@ -78,12 +105,41 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
       errorSubject: 'latest EpochParamContent',
     );
     if (paramResult.isErr()) return Err(paramResult.unwrapErr());
-    final epochParams = paramResult.unwrap();
-    final linearFee = LinearFee(
-      constant: epochParams.minFeeA,
-      coefficient: epochParams.minFeeB,
-    );
-    return Ok(linearFee);
+    final p = paramResult.unwrap();
+    final params = ProtocolParameters(
+        p.epoch,
+        p.minFeeA,
+        p.minFeeB,
+        p.maxBlockSize,
+        p.maxTxSize,
+        p.maxBlockHeaderSize,
+        BigInt.parse(p.keyDeposit),
+        BigInt.parse(p.poolDeposit),
+        p.eMax,
+        p.nOpt,
+        p.a0,
+        p.rho,
+        p.tau,
+        p.decentralisationParam,
+        p.extraEntropy,
+        p.protocolMajorVer,
+        p.protocolMinorVer,
+        BigInt.parse(p.minUtxo),
+        BigInt.parse(p.minPoolCost),
+        p.nonce,
+        _buildCostModels(p.costModels),
+        p.priceMem,
+        p.priceStep,
+        _bigIntOrNull(p.maxTxExMem),
+        _bigIntOrNull(p.maxTxExSteps),
+        _bigIntOrNull(p.maxBlockExMem),
+        _bigIntOrNull(p.maxBlockExSteps),
+        _bigIntOrNull(p.maxValSize),
+        p.collateralPercent,
+        p.maxCollateralInputs,
+        _bigIntOrNull(p.coinsPerUtxoSize),
+        _bigIntOrNull(p.coinsPerUtxoWord));
+    return Ok(params);
   }
 
   @override
@@ -280,6 +336,43 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
   //   }
   //   return false;
   // }
+
+  BigInt? _bigIntOrNull(String? value) =>
+      value == null ? null : BigInt.parse(value);
+
+  Map<BcScriptType, Map<String, int>> _buildCostModels(
+      BuiltMap<String, JsonObject?>? jsonMap) {
+    Map<BcScriptType, Map<String, int>> result = {};
+    for (String key in jsonMap?.keys ?? []) {
+      if (key == 'PlutusV1') {
+        Map<String, int>? values =
+            _buildCostModel(jsonMap!['PlutusV1']?.asMap ?? {});
+        result[BcScriptType.plutusV1] = values ?? {};
+      } else if (key == 'PlutusV2') {
+        Map<String, int>? values =
+            _buildCostModel(jsonMap!['PlutusV2']?.asMap ?? {});
+        result[BcScriptType.plutusV2] = values ?? {};
+      } else {
+        logger.warning("unknown key parsing costModels: '$key'");
+      }
+    }
+    return result;
+  }
+
+  Map<String, int>? _buildCostModel(Map map) {
+    Map<String, int>? results = {};
+    for (String key in map.keys) {
+      final value = map[key]?.toString();
+      final number = value != null ? int.tryParse(value.toString()) : null;
+      if (number != null) {
+        results[key] = number;
+      } else {
+        logger.warning(
+            "failed to parse costModel value as integer (key:value): '$key':'$value'");
+      }
+    }
+    return results;
+  }
 
   Future<Result<List<StakeAccount>, String>> _stakeAccount({
     required String poolId,

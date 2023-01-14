@@ -12,13 +12,14 @@ import '../asset/asset.dart';
 import '../blockchain/blockchain_adapter.dart';
 import '../util/ada_types.dart';
 import '../wallet/wallet.dart';
-import './min_fee_function.dart';
 import './transaction.dart';
 import './model/bc_tx.dart';
 import './model/bc_tx_body_ext.dart';
 import './model/bc_tx_ext.dart';
-import 'coin_selection.dart';
-import 'model/bc_scripts.dart';
+import './coin_selection.dart';
+import './fee_calculation_service.dart';
+import './model/bc_protocol_parameters.dart';
+import './model/bc_scripts.dart';
 
 ///
 /// This builder manages the details of assembling a balanced transaction, including
@@ -44,7 +45,7 @@ class TxBuilder {
   //calculated internally
   Coin _fee = coinZero;
   //fixes min fee if set
-  Coin _minFee = coinZero;
+  BigInt _minFee = BigInt.zero;
   int _ttl = 0;
   List<int>? _metadataHash;
   int? _validityStartInterval;
@@ -55,8 +56,11 @@ class TxBuilder {
   final List<BcPlutusScriptV1> _plutusV1Scripts = [];
   final List<BcPlutusScriptV2> _plutusV2Scripts = [];
   // BcAuxiliaryData? _auxiliaryData;
-  MinFeeFunction _minFeeFunction = simpleMinFee;
-  LinearFee _linearFee = defaultLinearFee;
+  //MinFeeFunction _minFeeFunction = simpleMinFee;
+  // ProtocolParameters _protocolParameters = protocolParametersEpoch243;
+  FeeCalculationService _feeCalculationService =
+      FeeCalculationService(protocolParametersEpoch243);
+  // LinearFee _linearFee = defaultLinearFee;
   int _currentSlot = 0;
   DateTime _currentSlotTimestamp = DateTime.now().toUtc();
 
@@ -69,7 +73,9 @@ class TxBuilder {
   BcTransactionBody _buildBody() => BcTransactionBody(
         inputs: _inputs,
         outputs: _outputs,
-        fee: _minFee != coinZero ? _minFee : _fee,
+        fee: _minFee != BigInt.zero
+            ? _minFee.toInt()
+            : _fee.toInt(), //TODO return BigInt
         ttl: _ttl,
         metadataHash: _metadataHash,
         validityStartInterval: _validityStartInterval ?? 0,
@@ -185,14 +191,19 @@ class TxBuilder {
       _ttl = result.unwrap();
     }
     //treat spendRequest.fee as minFee if set:
-    if (_minFee == 0 && _spendRequest != null && _spendRequest!.fee != 0) {
-      _minFee = _spendRequest!.fee;
+    if (_minFee == BigInt.zero &&
+        _spendRequest != null &&
+        _spendRequest!.fee != 0) {
+      _minFee = BigInt.from(_spendRequest!.fee);
     }
     //make sure existing spendRequest.fee is not zero
     if (_spendRequest != null && _spendRequest!.fee == 0) {
       _spendRequest = FlatMultiAsset(
           assets: _spendRequest!.assets,
-          fee: _minFee > 0 ? _minFee : defaultFee);
+          // fee: _minFee > 0 ? _minFee : defaultFee);
+          fee: _minFee.compareTo(BigInt.zero) == 1
+              ? _minFee.toInt()
+              : defaultFee);
     }
     bool balanced = true;
     do {
@@ -210,7 +221,7 @@ class TxBuilder {
         }
       }
       if (_inputs.isEmpty) {
-        return Err("inputs are empty");
+        return const Err("inputs are empty");
       }
       //convert value into spend output if not zero
       if (_toAddress != null && _outputs.isEmpty && _spendRequest != null) {
@@ -222,7 +233,7 @@ class TxBuilder {
         _outputs.add(outputResult.unwrap());
       }
       if (_outputs.isEmpty) {
-        return Err("no outputs specified");
+        return const Err("no outputs specified");
       }
       var body = _buildBody();
       //adjust change to balance transaction
@@ -237,7 +248,7 @@ class TxBuilder {
       Map<AbstractAddress, ShelleyUtxoKit> utxoKeyPairs =
           _loadUtxosAndTheirKeys();
       if (utxoKeyPairs.isEmpty) {
-        return Err("no UTxOs found in transaction");
+        return const Err("no UTxOs found in transaction");
       }
       final signingKeys = utxoKeyPairs.values.map((p) => p.signingKey).toList();
       var tx = BcTransaction(
@@ -283,7 +294,7 @@ class TxBuilder {
         return Ok(tx);
       }
     } while (!balanced);
-    return Err("should never land here");
+    return const Err("should never land here");
   }
 
   Result<BcTransactionOutput, String> flatMultiAssetToOutput(
@@ -309,34 +320,37 @@ class TxBuilder {
 
   Result<bool, String> _checkContraints() {
     if (_blockchainAdapter == null) {
-      return Err("'blockchainAdapter' property must be set");
+      return const Err("'blockchainAdapter' property must be set");
     }
     if (_outputs.isEmpty && _spendRequest == null && _toAddress == null) {
-      return Err(
+      return const Err(
           "when 'outputs' is not set, 'spendRequest' and 'toAddress' properties must be set");
     }
     if (_spendRequest != null) {
-      if (_minFee != 0 &&
+      if (_minFee != BigInt.zero &&
           _spendRequest!.fee != 0 &&
-          _minFee != _spendRequest!.fee) {
+          _minFee.toInt() != _spendRequest!.fee) {
         return Err(
             "specified fees conflict minFee: $_minFee and spendRequest.fee: ${_spendRequest!.fee}. Specify only one.");
       }
     }
     if (_changeAddress == null) {
-      return Err("'changeAddress' property must be set");
+      return const Err("'changeAddress' property must be set");
     }
-    return Ok(true);
+    return const Ok(true);
   }
 
   /// Because transaction size effects fees, this method should be called last, after all other
   /// BcTransactionBody properties are set.
   /// if minFee is set, then this determines the lower minimum fee bound.
-  Coin calculateMinFee({required BcTransaction tx, Coin minFee = 0}) {
-    Coin calculatedFee =
-        _minFeeFunction(transaction: tx, linearFee: _linearFee);
-    final fee = (calculatedFee < minFee) ? minFee : calculatedFee;
-    return fee;
+  Coin calculateMinFee({required BcTransaction tx, BigInt? minFee}) {
+    BigInt calculatedFee =
+        _feeCalculationService.calculateMinFee(transaction: tx);
+    //Coin calculatedFee = _minFeeFunction(transaction: tx, protocolParameters: _protocolParameters);
+    // final fee = (calculatedFee < minFee) ? minFee : calculatedFee;
+    minFee ??= BigInt.zero;
+    final fee = calculatedFee.compareTo(minFee) == -1 ? minFee : calculatedFee;
+    return fee.toInt(); //TODO return BigInt
   }
 
   /// return true if the ttl-focused current slot is stale or needs to be refreshed based
@@ -396,10 +410,15 @@ class TxBuilder {
 
   void currentSlot(int currentSlot) => _currentSlot = currentSlot;
 
-  void minFeeFunction(MinFeeFunction feeFunction) =>
-      _minFeeFunction = feeFunction;
+  // void minFeeFunction(MinFeeFunction feeFunction) =>
+  //     _minFeeFunction = feeFunction;
 
-  void linearFee(LinearFee linearFee) => _linearFee = linearFee;
+  void feeCalculationService(FeeCalculationService feeCalculationService) =>
+      _feeCalculationService = feeCalculationService;
+
+  // void linearFee(LinearFee linearFee) => _linearFee = linearFee;
+  // void protocolParameters(ProtocolParameters protocolParameters) =>
+  //     _protocolParameters = protocolParameters;
 
   void metadataHash(List<int>? metadataHash) => _metadataHash = metadataHash;
 
@@ -413,7 +432,9 @@ class TxBuilder {
   void coinSelectionFunction(CoinSelectionAlgorithm coinSelectionFunction) =>
       _coinSelectionFunction = coinSelectionFunction;
 
-  void minFee(Coin minFee) => _minFee = minFee;
+  void minFee(BigInt minFee) => _minFee = minFee;
+
+  void minFeeInt(int minFee) => _minFee = BigInt.from(minFee);
 
   void mint(BcMultiAsset mint) => _mint.add(mint);
 
