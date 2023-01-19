@@ -14,7 +14,7 @@ import 'dart:math';
 // import 'dart:typed_data';
 
 void main() {
-  Logger.root.level = Level.WARNING; // defaults to Level.INFO
+  //Logger.root.level = Level.WARNING; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
