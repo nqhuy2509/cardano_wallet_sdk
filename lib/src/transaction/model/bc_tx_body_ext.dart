@@ -23,10 +23,11 @@ extension BcTransactionBodyLogic on BcTransactionBody {
   ///
   Result<Map<AssetId, Coin>, String> sumCurrencyIO({
     required BlockchainCache cache,
-    Coin fee = 0,
+    Coin? fee,
     Logger? logger,
   }) {
     logger ??= Logger('BcTransactionBodyLogic');
+    fee ??= coinZero;
     Map<AssetId, Coin> sums = {};
     for (final input in inputs) {
       RawTransaction? tx = cache.cachedTransaction(input.transactionId);
@@ -70,8 +71,9 @@ extension BcTransactionBodyLogic on BcTransactionBody {
   ///
   Result<bool, String> transactionIsBalanced({
     required BlockchainCache cache,
-    Coin fee = 0,
+    Coin? fee,
   }) {
+    fee ??= coinZero;
     final result = sumCurrencyIO(cache: cache, fee: fee);
     if (result.isErr()) return Err(result.unwrapErr());
     final sums = result.unwrap();
@@ -88,8 +90,9 @@ extension BcTransactionBodyLogic on BcTransactionBody {
   Result<List<BcTransactionOutput>, String> balancedOutputsWithChange({
     required ShelleyAddress changeAddress,
     required BlockchainCache cache,
-    Coin fee = 0,
+    Coin? fee,
   }) {
+    fee ??= coinZero;
     //get the differences for each native token:
     final sumResult = sumCurrencyIO(cache: cache, fee: fee);
     if (sumResult.isErr()) return Err(sumResult.unwrapErr());

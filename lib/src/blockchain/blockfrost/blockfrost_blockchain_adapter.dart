@@ -200,8 +200,9 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
       return Err(content.unwrapErr());
     }
     final account = content.unwrap();
-    final controlledAmount =
-        content.isOk() ? int.tryParse(account.controlledAmount) ?? 0 : 0;
+    final controlledAmount = content.isOk()
+        ? BigInt.tryParse(account.controlledAmount) ?? BigInt.zero
+        : BigInt.zero;
     if (controlledAmount == coinZero && account.active == false) {
       //likely new wallet with no transactions, bail out
       return Ok(WalletUpdate(
@@ -448,7 +449,7 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
     for (var reward in rewardResponse.data!) {
       rewards.add(StakeReward(
           epoch: reward.epoch,
-          amount: int.tryParse(reward.amount) ?? 0,
+          amount: BigInt.tryParse(reward.amount) ?? BigInt.zero,
           poolId: reward.poolId));
       logger.info(
           "amount: ${reward.amount}, epoch: ${reward.epoch}, pool_id: ${reward.poolId}");
@@ -469,13 +470,13 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
     final stakeAccount = StakeAccount(
       active: a.active,
       activeEpoch: a.activeEpoch,
-      controlledAmount: int.tryParse(a.controlledAmount) ?? 0,
-      reservesSum: int.tryParse(a.reservesSum) ?? 0,
-      withdrawableAmount: int.tryParse(a.withdrawableAmount) ?? 0,
-      rewardsSum: int.tryParse(a.reservesSum) ?? 0,
-      treasurySum: int.tryParse(a.treasurySum) ?? 0,
+      controlledAmount: BigInt.tryParse(a.controlledAmount) ?? BigInt.zero,
+      reservesSum: BigInt.tryParse(a.reservesSum) ?? BigInt.zero,
+      withdrawableAmount: BigInt.tryParse(a.withdrawableAmount) ?? BigInt.zero,
+      rewardsSum: BigInt.tryParse(a.reservesSum) ?? BigInt.zero,
+      treasurySum: BigInt.tryParse(a.treasurySum) ?? BigInt.zero,
       poolId: a.poolId,
-      withdrawalsSum: int.tryParse(a.withdrawableAmount) ?? 0,
+      withdrawalsSum: BigInt.tryParse(a.withdrawableAmount) ?? BigInt.zero,
       stakePool: stakePool,
       poolMetadata: stakePoolMetadata,
       rewards: rewards,
@@ -544,7 +545,7 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
     for (var input in list) {
       List<TransactionAmount> amounts = [];
       for (var io in input.amount) {
-        final quantity = int.tryParse(io.quantity) ?? 0;
+        final quantity = BigInt.tryParse(io.quantity) ?? BigInt.zero;
         final unit = io.unit == 'lovelace'
             ? lovelaceHex
             : io.unit; //translate 'lovelace' to assetId representation
@@ -566,7 +567,7 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
     for (var input in list) {
       List<TransactionAmount> amounts = [];
       for (var io in input.amount) {
-        final quantity = int.tryParse(io.quantity) ?? 0;
+        final quantity = BigInt.tryParse(io.quantity) ?? BigInt.zero;
         final unit = io.unit == 'lovelace'
             ? lovelaceHex
             : io.unit; //translate 'lovelace' to assetId representation
@@ -661,7 +662,8 @@ class BlockfrostBlockchainAdapter implements BlockchainAdapter {
     //     "blockfrost.getCardanoTransactionsApi().txsHashUtxosGet(hash:$txHash) -> ${serializers.toJson(TxContentUtxo.serializer, txUtxo.data!)}");
     final time = block.unwrap().time;
     //final deposit = int.tryParse(txContent.data?.deposit ?? '0') ?? 0;
-    final fees = int.tryParse(txContentResult.unwrap().fees) ?? 0;
+    // final fees = int.tryParse(txContentResult.unwrap().fees) ?? 0;
+    final fees = BigInt.tryParse(txContentResult.unwrap().fees) ?? BigInt.zero;
     //final withdrawalCount = txContent.data!.withdrawalCount;
     final addrInputs = txContentUtxoResult.unwrap().inputs;
     List<TransactionInput> inputs = _buildIputs(addrInputs);

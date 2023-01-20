@@ -56,7 +56,7 @@ class BcMultiAsset extends BcAbstractCbor {
     final List<BcAsset> assets = [];
     (mapEntry.value as Map).forEach((key, value) => assets.add(BcAsset(
         name: HEX.encode((key as CborBytes).bytes),
-        value: (value as CborInt).toInt())));
+        value: (value as CborInt).toBigInt())));
     return BcMultiAsset(policyId: policyId, assets: assets);
   }
 
@@ -70,7 +70,7 @@ class BcMultiAsset extends BcAbstractCbor {
     final entries = {
       for (var a in assets)
         CborBytes(uint8BufferFromHex(a.name, utf8EncodeOnHexFailure: true)):
-            CborSmallInt(a.value)
+            CborSmallInt(a.value.toInt())
     };
     return CborMap({CborBytes(uint8BufferFromHex(policyId)): CborMap(entries)});
   }
@@ -124,7 +124,7 @@ class BcValue extends BcAbstractCbor {
         .map((entry) => BcMultiAsset.fromCbor(mapEntry: entry))
         .toList();
     return BcValue(
-        coin: (list[0] as CborInt).toInt(), multiAssets: multiAssets);
+        coin: (list[0] as CborInt).toBigInt(), multiAssets: multiAssets);
   }
 
   @override
@@ -143,7 +143,7 @@ class BcValue extends BcAbstractCbor {
     final ma = multiAssets
         .map((m) => m.toCborMap())
         .reduce((m1, m2) => m1..addAll(m2));
-    return CborList([CborSmallInt(coin), ma]);
+    return CborList([CborSmallInt(coin.toInt()), ma]);
   }
 
   @override
@@ -167,7 +167,8 @@ class BcTransactionOutput extends BcAbstractCbor {
     if (list[1] is CborInt) {
       return BcTransactionOutput(
           address: address,
-          value: BcValue(coin: (list[1] as CborInt).toInt(), multiAssets: []));
+          value:
+              BcValue(coin: (list[1] as CborInt).toBigInt(), multiAssets: []));
     } else if (list[1] is CborList) {
       final BcValue value = BcValue.fromCbor(list: list[1] as CborList);
       return BcTransactionOutput(address: address, value: value);
@@ -183,7 +184,7 @@ class BcTransactionOutput extends BcAbstractCbor {
     //length should always be 2
     return CborList([
       CborBytes(unit8BufferFromShelleyAddress(address)),
-      value.multiAssets.isEmpty ? CborSmallInt(value.coin) : value.toCborList()
+      value.multiAssets.isEmpty ? CborBigInt(value.coin) : value.toCborList()
     ]);
   }
 
@@ -222,7 +223,7 @@ class BcTransactionBody extends BcAbstractCbor {
   final List<BcTransactionInput> inputs;
   final List<BcTransactionOutput> outputs;
   final List<BcTransactionInput> collateral;
-  final int fee;
+  final Coin fee;
   final int? ttl; //Optional
   final List<BcCertificate> certs;
   final List<BcWithdrawal> withdrawals;
@@ -266,7 +267,7 @@ class BcTransactionBody extends BcAbstractCbor {
     return BcTransactionBody(
       inputs: inputs,
       outputs: outputs,
-      fee: (map[const CborSmallInt(2)] as CborInt).toInt(),
+      fee: (map[const CborSmallInt(2)] as CborInt).toBigInt(),
       ttl: map[const CborSmallInt(3)] == null
           ? null
           : (map[const CborSmallInt(3)] as CborInt).toInt(),
@@ -293,7 +294,7 @@ class BcTransactionBody extends BcAbstractCbor {
       const CborSmallInt(1):
           CborList([for (final output in outputs) output.toCborList()]),
       //2:fee
-      const CborSmallInt(2): CborSmallInt(fee),
+      const CborSmallInt(2): CborBigInt(fee),
       //3:ttl (optional)
       if (ttl != null) const CborSmallInt(3): CborSmallInt(ttl!),
       //4:certs (optional)
@@ -327,7 +328,7 @@ class BcTransactionBody extends BcAbstractCbor {
   BcTransactionBody update({
     List<BcTransactionInput>? inputs,
     List<BcTransactionOutput>? outputs,
-    int? fee,
+    BigInt? fee,
     int? ttl,
     List<int>? metadataHash,
     int? validityStartInterval,

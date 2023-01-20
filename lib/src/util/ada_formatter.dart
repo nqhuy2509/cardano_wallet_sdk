@@ -126,5 +126,6 @@ class AdaFormattter {
               locale: locale, name: name, decimalDigits: decimalDigits));
 
   /// Convert lovelace to ADA and format [number] according to our pattern and return the formatted string.
-  String format(lovelace) => formatter.format(lovelace / 1000000.0);
+  String format(BigInt lovelace) =>
+      formatter.format(lovelace / BigInt.from(1000000));
 }

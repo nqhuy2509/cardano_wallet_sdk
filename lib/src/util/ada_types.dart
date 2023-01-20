@@ -6,10 +6,10 @@
 ///
 /// TODO migrate to BigInt in future release.
 ///
-typedef Coin = int;
+typedef Coin = BigInt; //int;
 
 /// placeholder for future BigInt.zero
-const Coin coinZero = 0;
+final Coin coinZero = BigInt.zero; // 0;
 
 /// Native Token policyId appended to hex encoded coin name. ADA has no policyId
 /// so its assetId is just 'lovelace' in hex: '6c6f76656c616365'. Simalur to 'unit'

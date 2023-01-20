@@ -25,7 +25,7 @@ class ReadOnlyWalletImpl implements ReadOnlyWallet {
   final String walletName;
   @override
   final BlockchainAdapter blockchainAdapter;
-  int _balance = 0;
+  Coin _balance = BigInt.zero;
   List<WalletTransaction> _transactions = [];
   List<AbstractAddress> _usedAddresses = [];
   Map<String, CurrencyAsset> _assets = {};
@@ -43,15 +43,15 @@ class ReadOnlyWalletImpl implements ReadOnlyWallet {
   Map<String, Coin> get currencies =>
       transactions.map((t) => t.currencies).expand((m) => m.entries).fold(
           <String, Coin>{},
-          (result, entry) =>
-              result..[entry.key] = entry.value + (result[entry.key] ?? 0));
+          (result, entry) => result
+            ..[entry.key] = entry.value + (result[entry.key] ?? BigInt.zero));
 
   @override
   Coin get calculatedBalance {
     final Coin rewardsSum = stakeAccounts
         .map((s) => s.withdrawalsSum)
-        .fold(0, (p, c) => p + c); //TODO figure out the math
-    final Coin lovelaceSum = currencies[lovelaceHex] ?? 0;
+        .fold(BigInt.zero, (p, c) => p + c); //TODO figure out the math
+    final Coin lovelaceSum = currencies[lovelaceHex] ?? BigInt.zero;
     final result = lovelaceSum + rewardsSum;
     return result;
   }

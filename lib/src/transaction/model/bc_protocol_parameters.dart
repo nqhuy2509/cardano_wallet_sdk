@@ -147,7 +147,7 @@ class ProtocolParameters {
 // const defaultLinearFee = LinearFee(coefficient: minFeeA, constant: minFeeB);
 
 /// default fee for simple ADA transaction
-const defaultFee = 170000; // 0.2 ADA
+final defaultFee = BigInt.from(170000); // 0.2 ADA
 
 /*
 EpochParamContent {

@@ -46,12 +46,12 @@ class CurrencyAsset {
   CurrencyAsset.fromName(
       {required String name,
       required String policyId,
-      Coin quantity = coinZero,
+      Coin? quantity,
       required String initialMintTxHash})
       : this(
             assetName: str2hex.encode(name),
             policyId: policyId,
-            quantity: '$quantity',
+            quantity: quantity == null ? '0' : '$quantity',
             initialMintTxHash: initialMintTxHash);
 
   bool get isNativeToken => assetId != lovelaceAssetId;

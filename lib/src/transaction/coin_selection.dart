@@ -56,8 +56,8 @@ class FlatMultiAsset {
   final Map<AssetId, Coin> assets;
   final Coin fee;
 
-  FlatMultiAsset({required this.assets, this.fee = coinZero});
-  FlatMultiAsset.outputsRequested(BcValue request, {Coin fee = coinZero})
+  FlatMultiAsset({required this.assets, Coin? fee}) : fee = fee ?? coinZero;
+  FlatMultiAsset.outputsRequested(BcValue request, {Coin? fee})
       : this(assets: outputsRequestedToGoal(request), fee: fee);
 
   FlatMultiAsset add({required AssetId assetId, required Coin quantity}) =>
@@ -67,7 +67,7 @@ class FlatMultiAsset {
 
   bool assetIdFunded(Iterable<UTxO> candidateUTxOs, AssetId assetId) {
     final calculated = candidateUTxOs.fold(coinZero,
-        (sum, utxo) => (sum as int) + utxo.output.quantityAssetId(assetId));
+        (sum, utxo) => (sum as BigInt) + utxo.output.quantityAssetId(assetId));
     final required =
         assets[assetId]! + (assetId == lovelaceAssetId ? fee : coinZero);
     final success = calculated >= required;
@@ -99,7 +99,7 @@ class FlatMultiAsset {
 
   Map<AssetId, Coin> _diff(Map<AssetId, Coin> utxosSum) => {
         for (MapEntry e in assets.entries)
-          e.key: ((utxosSum[e.key] ?? coinZero) - e.value) as int
+          e.key: (utxosSum[e.key] ?? coinZero) - e.value
       };
 
   @override

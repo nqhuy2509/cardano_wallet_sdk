@@ -14,22 +14,22 @@ class StakeAccount {
   final int? activeEpoch;
 
   /// Balance of the account in Lovelaces
-  final int controlledAmount;
+  final BigInt controlledAmount;
 
   /// Sum of all rewards for the account in the Lovelaces
-  final int rewardsSum;
+  final BigInt rewardsSum;
 
   /// Sum of all the withdrawals for the account in Lovelaces
-  final int withdrawalsSum;
+  final BigInt withdrawalsSum;
 
   /// Sum of all funds from reserves for the account in the Lovelaces
-  final int reservesSum;
+  final BigInt reservesSum;
 
   /// Sum of all funds from treasury for the account in the Lovelaces
-  final int treasurySum;
+  final BigInt treasurySum;
 
   /// Sum of available rewards that haven't been withdrawn yet for the account in the Lovelaces
-  final int withdrawableAmount;
+  final BigInt withdrawableAmount;
 
   /// Bech32 pool ID that owns the account
   final String? poolId;
@@ -74,7 +74,7 @@ class StakeReward {
   final int epoch;
 
   /// amount of reward in lovelace
-  final int amount;
+  final BigInt amount;
 
   /// stake pool ID
   final String poolId;

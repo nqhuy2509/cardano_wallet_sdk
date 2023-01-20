@@ -13,7 +13,7 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   final logger = Logger('TxBuilderMockTest');
-  const ada = 1000000;
+  final ada = BigInt.from(1000000);
   final mockAdapter = BlockfrostBlockchainAdapter(
       blockfrost: buildMockBlockfrostWallet2(),
       network: Networks.testnet,
@@ -73,8 +73,8 @@ void main() {
       });
     });
     test('sendAda - 99 ADA - 1 UTxOs', () async {
-      Result<BcTransaction, String> result =
-          await wallet.sendAda(toAddress: toAddress, lovelace: ada * 99);
+      Result<BcTransaction, String> result = await wallet.sendAda(
+          toAddress: toAddress, lovelace: ada * BigInt.from(99));
       expect(result.isOk(), isTrue);
       final tx = result.unwrap();
       expect(tx.verify, isTrue, reason: 'witnesses validate signatures');
@@ -88,8 +88,8 @@ void main() {
       expect(tx.body.fee, lessThan(defaultFee));
     });
     test('sendAda - 100 ADA - 2 UTxOs', () async {
-      Result<BcTransaction, String> result =
-          await wallet.sendAda(toAddress: toAddress, lovelace: ada * 100);
+      Result<BcTransaction, String> result = await wallet.sendAda(
+          toAddress: toAddress, lovelace: ada * BigInt.from(100));
       expect(result.isOk(), isTrue);
       final tx = result.unwrap();
       expect(tx.verify, isTrue, reason: 'witnesses validate signatures');
@@ -100,11 +100,11 @@ void main() {
           tx.body.transactionIsBalanced(cache: mockAdapter, fee: tx.body.fee);
       expect(balResult.isOk(), isTrue);
       expect(balResult.unwrap(), isTrue);
-      expect(tx.body.fee, lessThan(2000000));
+      expect(tx.body.fee, lessThan(BigInt.from(2000000)));
     });
     test('sendAda - 200 ADA - insufficient balance', () async {
-      Result<BcTransaction, String> result =
-          await wallet.sendAda(toAddress: toAddress, lovelace: ada * 200);
+      Result<BcTransaction, String> result = await wallet.sendAda(
+          toAddress: toAddress, lovelace: ada * BigInt.from(200));
       expect(result.isErr(), isTrue);
       //logger.info("Error: ${result.unwrapErr()}");
     });
@@ -112,8 +112,8 @@ void main() {
     test('send multi-asset transaction using builder - 1 UTxO', () async {
       final builder = TxBuilder()
         ..spendRequest(FlatMultiAsset(assets: {
-          lovelaceHex: ada * 5,
-          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': 1
+          lovelaceHex: ada * BigInt.from(5),
+          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': BigInt.one
         }))
         ..toAddress(toAddress)
         ..wallet(wallet)
@@ -131,8 +131,8 @@ void main() {
     test('send multi-asset transaction using builder - 2 UTxO', () async {
       final builder = TxBuilder()
         ..spendRequest(FlatMultiAsset(assets: {
-          lovelaceHex: ada * 199,
-          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': 1
+          lovelaceHex: ada * BigInt.from(199),
+          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': BigInt.one
         }))
         ..toAddress(toAddress)
         ..wallet(wallet)
@@ -150,8 +150,8 @@ void main() {
     test('send multi-asset - insufficient balance', () async {
       final builder = TxBuilder()
         ..spendRequest(FlatMultiAsset(assets: {
-          lovelaceHex: ada * 200,
-          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': 1
+          lovelaceHex: ada * BigInt.from(200),
+          '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7': BigInt.one
         }))
         ..toAddress(toAddress)
         ..wallet(wallet)
@@ -163,10 +163,10 @@ void main() {
     });
     test('2nd coin select iteration', () async {
       //set fee too low for 1 UTxO tx, forcing 2nd coin selection call
-      final utxo0Ada = ada * 100;
+      final utxo0Ada = ada * BigInt.from(100);
       final builder = TxBuilder()
-        ..spendRequest(FlatMultiAsset(fee: 100000, assets: {
-          lovelaceHex: utxo0Ada - 100000,
+        ..spendRequest(FlatMultiAsset(fee: BigInt.from(100000), assets: {
+          lovelaceHex: utxo0Ada - BigInt.from(100000),
         }))
         ..toAddress(toAddress)
         ..wallet(wallet)

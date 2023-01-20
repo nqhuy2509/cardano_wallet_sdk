@@ -73,9 +73,7 @@ class TxBuilder {
   BcTransactionBody _buildBody() => BcTransactionBody(
         inputs: _inputs,
         outputs: _outputs,
-        fee: _minFee != BigInt.zero
-            ? _minFee.toInt()
-            : _fee.toInt(), //TODO return BigInt
+        fee: _minFee != BigInt.zero ? _minFee : _fee,
         ttl: _ttl,
         metadataHash: _metadataHash,
         validityStartInterval: _validityStartInterval ?? 0,
@@ -193,17 +191,15 @@ class TxBuilder {
     //treat spendRequest.fee as minFee if set:
     if (_minFee == BigInt.zero &&
         _spendRequest != null &&
-        _spendRequest!.fee != 0) {
-      _minFee = BigInt.from(_spendRequest!.fee);
+        _spendRequest!.fee != BigInt.zero) {
+      _minFee = _spendRequest!.fee;
     }
     //make sure existing spendRequest.fee is not zero
-    if (_spendRequest != null && _spendRequest!.fee == 0) {
+    if (_spendRequest != null && _spendRequest!.fee == BigInt.zero) {
       _spendRequest = FlatMultiAsset(
           assets: _spendRequest!.assets,
           // fee: _minFee > 0 ? _minFee : defaultFee);
-          fee: _minFee.compareTo(BigInt.zero) == 1
-              ? _minFee.toInt()
-              : defaultFee);
+          fee: _minFee.compareTo(BigInt.zero) == 1 ? _minFee : defaultFee);
     }
     bool balanced = true;
     do {
@@ -328,8 +324,8 @@ class TxBuilder {
     }
     if (_spendRequest != null) {
       if (_minFee != BigInt.zero &&
-          _spendRequest!.fee != 0 &&
-          _minFee.toInt() != _spendRequest!.fee) {
+          _spendRequest!.fee != BigInt.zero &&
+          _minFee != _spendRequest!.fee) {
         return Err(
             "specified fees conflict minFee: $_minFee and spendRequest.fee: ${_spendRequest!.fee}. Specify only one.");
       }
@@ -350,7 +346,7 @@ class TxBuilder {
     // final fee = (calculatedFee < minFee) ? minFee : calculatedFee;
     minFee ??= BigInt.zero;
     final fee = calculatedFee.compareTo(minFee) == -1 ? minFee : calculatedFee;
-    return fee.toInt(); //TODO return BigInt
+    return fee;
   }
 
   /// return true if the ttl-focused current slot is stale or needs to be refreshed based
@@ -546,9 +542,9 @@ class MultiAssetBuilder {
   MultiAssetBuilder nativeAsset2({
     required String policyId,
     String? hexName1,
-    required int value1,
+    required Coin value1,
     String? hexName2,
-    required int value2,
+    required Coin value2,
   }) {
     final nativeAsset = BcMultiAsset(policyId: policyId, assets: [
       BcAsset(name: hexName1 ?? '', value: value1),
@@ -560,7 +556,7 @@ class MultiAssetBuilder {
 
   MultiAssetBuilder asset(CurrencyAsset asset) {
     final nativeAsset = BcMultiAsset(policyId: asset.policyId, assets: [
-      BcAsset(name: asset.assetName, value: int.parse(asset.quantity)),
+      BcAsset(name: asset.assetName, value: BigInt.parse(asset.quantity)),
     ]);
     _multiAssets.add(nativeAsset);
     return this;

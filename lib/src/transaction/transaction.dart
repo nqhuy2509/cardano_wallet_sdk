@@ -83,8 +83,9 @@ class TransactionOutput {
 
   bool containsAssetId(String assetId) => amounts.any((a) => a.unit == assetId);
 
-  int quantityAssetId(String assetId) =>
-      amounts.firstWhereOrNull((a) => a.unit == assetId)?.quantity ?? 0;
+  BigInt quantityAssetId(String assetId) =>
+      amounts.firstWhereOrNull((a) => a.unit == assetId)?.quantity ??
+      BigInt.zero;
 
   Map<AssetId, Coin> get toMap => amounts.fold(
       <AssetId, Coin>{},

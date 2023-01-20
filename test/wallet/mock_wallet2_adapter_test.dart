@@ -75,7 +75,7 @@ void main() {
 
             //balances
             expect(wallet.currencies[lovelaceHex], equals(update.balance));
-            expect(wallet.currencies[testcoinHex], equals(1));
+            expect(wallet.currencies[testcoinHex], equals(BigInt.one));
           },
           err: (err) => logger.info(err));
     }); //, skip: 'not worth the effort to setup and maintain'

@@ -53,7 +53,7 @@ abstract class ReadOnlyWallet {
   List<WalletTransaction> filterTransactions({required AssetId assetId});
   List<AbstractAddress> get addresses;
   bool refresh(
-      {required int balance,
+      {required Coin balance,
       required List<RawTransaction> transactions,
       required List<AbstractAddress> usedAddresses,
       required Map<String, CurrencyAsset> assets,

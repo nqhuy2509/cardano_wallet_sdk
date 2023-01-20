@@ -46,7 +46,7 @@ abstract class Wallet extends ReadOnlyWallet {
     required AbstractAddress toAddress,
     required Coin lovelace,
     int ttl = 0,
-    int fee = 0,
+    Coin? fee,
     bool logTxHex = false,
     bool logTx = false,
   });
@@ -59,8 +59,8 @@ abstract class Wallet extends ReadOnlyWallet {
   /// Build a simple spend transaction.
   Future<Result<BcTransaction, String>> buildSpendTransaction({
     required ShelleyAddress toAddress,
-    required int lovelace,
+    required Coin lovelace,
     int ttl = 0,
-    int fee = 0,
+    Coin? fee,
   });
 }

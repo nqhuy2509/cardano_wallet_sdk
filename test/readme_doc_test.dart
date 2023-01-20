@@ -91,7 +91,7 @@ void main() {
     test('Send ADA to Bob', () async {
       var bobsAddress = ShelleyAddress.fromBech32(
           'addr_test1qqwncl938qg3sf46z8n878z26fnq426ttyarv3hk58keyzpxngwdkqgqcvjtzmz624d6efz67ysf3597k24uyzqg5ctsq32vnr');
-      final adaAmount = 2 * 1000000;
+      final adaAmount = BigInt.from(2 * 1000000);
       final walletBuilder = WalletBuilder()
         ..network = Networks.testnet
         ..testnetAdapterKey = blockfrostKey

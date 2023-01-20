@@ -74,9 +74,9 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
   @override
   Future<Result<BcTransaction, String>> sendAda({
     required AbstractAddress toAddress,
-    required int lovelace,
+    required Coin lovelace,
     int ttl = 0,
-    int fee = 0,
+    Coin? fee,
     bool logTxHex = false,
     bool logTx = false,
   }) async {
@@ -104,9 +104,9 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
   @override
   Future<Result<BcTransaction, String>> buildSpendTransaction({
     required AbstractAddress toAddress,
-    required int lovelace,
+    required Coin lovelace,
     int ttl = 0,
-    int fee = 0,
+    Coin? fee,
   }) async {
     if (lovelace > balance) {
       return const Err('insufficient balance');
@@ -122,7 +122,7 @@ class WalletImpl extends ReadOnlyWalletImpl implements Wallet {
     }
     //coin selection:
     //TODO handle edge-case where fee adjustment requires input recalculation.
-    const Coin maxFeeGuess = 200000; //0.2 ADA
+    Coin maxFeeGuess = BigInt.from(200000); //0.2 ADA
     final inputsResult = await coinSelectionFunction(
       unspentInputsAvailable: unspentTransactions,
       spendRequest:
