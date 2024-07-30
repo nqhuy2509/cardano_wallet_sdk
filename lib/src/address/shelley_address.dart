@@ -402,11 +402,11 @@ class ShelleyAddress extends AbstractAddress {
     switch (hrp) {
       case defaultAddrHrp:
         return ShelleyAddress(mainNetEncoder.decode(address), hrp: hrp);
-      case defaultAddrHrp + testnetHrpSuffix:
+      case const (defaultAddrHrp + testnetHrpSuffix):
         return ShelleyAddress(testNetEncoder.decode(address), hrp: hrp);
       case defaultRewardHrp:
         return ShelleyAddress(mainNetRewardEncoder.decode(address), hrp: hrp);
-      case defaultRewardHrp + testnetHrpSuffix:
+      case const (defaultRewardHrp + testnetHrpSuffix):
         return ShelleyAddress(testNetRewardEncoder.decode(address), hrp: hrp);
       default:
         return ShelleyAddress(Bech32Encoder(hrp: hrp).decode(address),
@@ -419,11 +419,11 @@ class ShelleyAddress extends AbstractAddress {
     switch (prefix) {
       case defaultAddrHrp:
         return mainNetEncoder.encode(bytes);
-      case defaultAddrHrp + testnetHrpSuffix:
+      case const (defaultAddrHrp + testnetHrpSuffix):
         return testNetEncoder.encode(bytes);
       case defaultRewardHrp:
         return mainNetRewardEncoder.encode(bytes);
-      case defaultRewardHrp + testnetHrpSuffix:
+      case const (defaultRewardHrp + testnetHrpSuffix):
         return testNetRewardEncoder.encode(bytes);
     }
     return Bech32Encoder(hrp: prefix).encode(bytes);
